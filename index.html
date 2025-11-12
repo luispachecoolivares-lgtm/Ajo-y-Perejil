@@ -1,1 +1,577 @@
-<!doctype html><html><head><meta charset='utf-8'><title>Ajo y Perejil</title></head><body><h1>Ajo y Perejil</h1><p>Aplicación lista para subir a GitHub Pages.</p></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Ajo y Perejil</title>
+<meta name="description" content="Ajo y Perejil — gestión de recetas, menús, reservas y contabilidad para una sociedad gastronómica." />
+<meta name="theme-color" content="#ffffff" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#ffffff;--muted:#6b7280;--icon:#374151}
+  html,body{height:100%}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#0f172a;margin:0;-webkit-font-smoothing:antialiased}
+  .safe-bottom{padding-bottom:calc(env(safe-area-inset-bottom)+14px)}
+  .container{max-width:900px;margin:0 auto;padding:16px;padding-bottom:92px}
+  .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(16,24,40,0.06);padding:14px;margin-bottom:12px}
+  .nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;padding:10px calc(env(safe-area-inset-left)+8px) calc(env(safe-area-inset-bottom)+12px) calc(env(safe-area-inset-right)+8px);background:rgba(255,255,255,0.98);border-top:1px solid rgba(16,24,40,0.04);backdrop-filter:blur(6px)}
+  .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted);background:none;border:0;padding:6px;border-radius:10px}
+  .nav-btn.active{color:var(--icon);font-weight:600}
+  .icon{width:22px;height:22px;display:block}
+  .hidden{display:none}
+  .field{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+  .btn{padding:10px 12px;border-radius:12px;font-weight:600}
+  .btn-primary{background:#0ea5a4;color:white}
+  .btn-ghost{background:white;border:1px solid #e5e7eb}
+  .small{font-size:13px;color:var(--muted)}
+  /* category bubbles */
+  .cat-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding-top:12px}
+  .cat-card{width:120px;height:90px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;position:relative;transition:transform .25s,opacity .25s}
+  .cat-actions{display:flex;gap:8px;justify-content:center;margin-top:8px}
+  .cat-btn{padding:6px 8px;border-radius:8px;border:0;font-weight:600;color:white}
+  .fade-in{animation:fadeIn .28s ease}
+  .fade-out{animation:fadeOut .28s ease forwards}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes fadeOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px) scale(.98)}}
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:white;border-radius:12px;padding:16px;max-width:600px;width:92%;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
+  .danger{background:#ef4444;color:white}
+  .success{background:#10b981;color:white}
+  .muted{color:var(--muted)}
+  @media (max-width:520px){ .cat-card{width:100px;height:76px;font-size:13px} .container{padding:12px} }
+</style>
+</head>
+<body class="safe-bottom">
+  <div class="container" id="app">
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-lg font-extrabold">Ajo y Perejil</h1>
+        <div class="small">Recetas · Contabilidad · Reservas · Balances</div>
+      </div>
+      <div>
+        <button id="btnOptions" class="btn btn-ghost">Opciones</button>
+      </div>
+    </header>
+
+    <!-- Inicio -->
+    <section id="inicio" class="card">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="small">Resumen</div>
+          <div class="text-xl font-semibold">Panel</div>
+        </div>
+        <div class="text-right">
+          <div class="small">Saldo</div>
+          <div id="saldoGlobal" class="text-lg font-bold">0,00 €</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-4">
+        <div class="text-center p-3 rounded-lg bg-white">
+          <div class="small">Recetas</div>
+          <div id="cntRecetas" class="text-lg font-semibold">0</div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-white">
+          <div class="small">Menús</div>
+          <div id="cntMenus" class="text-lg font-semibold">0</div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-white">
+          <div class="small">Reservas</div>
+          <div id="cntReservas" class="text-lg font-semibold">0</div>
+        </div>
+      </div>
+
+      <div class="mt-4 small text-gray-500">Próximas reservas</div>
+      <div id="proxReservas" class="mt-2"></div>
+    </section>
+
+    <!-- Recetas -->
+    <section id="recetas" class="card hidden">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Recetas</div>
+        <div class="small">Guardadas localmente</div>
+      </div>
+      <form id="formReceta" class="mt-3 space-y-2">
+        <input id="rNombre" class="field" placeholder="Nombre de la receta" required>
+        <textarea id="rIngredientes" class="field" rows="3" placeholder="Ingredientes (una por línea)"></textarea>
+        <div class="flex gap-2">
+          <button class="btn btn-primary" type="submit">Guardar</button>
+          <button id="limpiarRec" type="button" class="btn btn-ghost">Limpiar</button>
+        </div>
+      </form>
+      <div id="listaRecetas" class="mt-3 small"></div>
+    </section>
+
+    <!-- Categorías (visual, color bubbles) -->
+    <section id="categorias" class="card hidden">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Categorías</div>
+        <div class="small">Añade y gestiona categorías</div>
+      </div>
+
+      <div class="mt-3 flex gap-2">
+        <input id="newCatName" class="field flex-1" placeholder="Nombre nueva categoría">
+        <button id="addCatBtn" class="btn btn-primary">➕ Añadir</button>
+      </div>
+
+      <div id="catGrid" class="cat-grid mt-3" aria-live="polite"></div>
+    </section>
+
+    <!-- Contabilidad -->
+    <section id="contabilidad" class="card hidden">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Contabilidad</div>
+        <div class="small">Ingresos / Gastos</div>
+      </div>
+
+      <form id="formMov" class="mt-3 space-y-2">
+        <input type="hidden" id="movId">
+        <div class="grid grid-cols-3 gap-2">
+          <select id="movTipo" class="field col-span-1">
+            <option value="ingreso">Ingreso</option>
+            <option value="gasto">Gasto</option>
+          </select>
+          <input id="movImporte" type="number" step="0.01" class="field col-span-2" placeholder="Importe (€)" required>
+        </div>
+        <input id="movFecha" type="date" class="field" value="">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="movCategoria" class="field"></select>
+          <input id="movConcepto" class="field" placeholder="Concepto">
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-primary" type="submit">Registrar</button>
+          <button id="limpiarMov" type="button" class="btn btn-ghost">Limpiar</button>
+        </div>
+      </form>
+
+      <div class="mt-3 small text-gray-500">Últimos movimientos</div>
+      <div id="listaMovimientos" class="mt-2 small"></div>
+    </section>
+
+    <!-- Reservas -->
+    <section id="reservas" class="card hidden">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Reservas</div>
+        <div class="small">Calendario simple</div>
+      </div>
+      <form id="formRes" class="mt-3 space-y-2">
+        <input id="resNombre" class="field" placeholder="Nombre" required>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="resFecha" type="date" class="field" required>
+          <input id="resHora" type="time" class="field" value="20:00">
+        </div>
+        <input id="resPax" type="number" min="1" class="field" placeholder="Comensales" value="2">
+        <div class="flex gap-2">
+          <button class="btn btn-primary" type="submit">Guardar</button>
+          <button id="limpiarRes" type="button" class="btn btn-ghost">Limpiar</button>
+        </div>
+      </form>
+      <div class="mt-3 small text-gray-500">Próximas reservas</div>
+      <div id="listaReservas" class="mt-2 small"></div>
+    </section>
+
+    <!-- Balances (tabla simple) -->
+    <section id="balances" class="card hidden">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Balances</div>
+        <div class="small">Resumen por categoría</div>
+      </div>
+      <div class="mt-3 overflow-x-auto">
+        <table id="tablaBalances" class="">
+          <thead><tr><th class="small">Categoría</th><th class="small">Ingresos (€)</th><th class="small">Gastos (€)</th><th class="small">Saldo (€)</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><th>Total</th><th id="sumIngresos">0,00</th><th id="sumGastos">0,00</th><th id="sumSaldo">0,00</th></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="nav" role="navigation" aria-label="Navegación principal">
+    <button class="nav-btn active" data-target="inicio" title="Inicio">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 12l9-9 9 9" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V9h6v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="small">Inicio</span>
+    </button>
+    <button class="nav-btn" data-target="recetas" title="Recetas">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 7h18M7 3v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="small">Recetas</span>
+    </button>
+    <button class="nav-btn" data-target="categorias" title="Categorías">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="small">Categorías</span>
+    </button>
+    <button class="nav-btn" data-target="contabilidad" title="Contabilidad">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M12 8v8"/><path d="M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      <span class="small">Cuenta</span>
+    </button>
+    <button class="nav-btn" data-target="reservas" title="Reservas">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4"/></svg>
+      <span class="small">Reservas</span>
+    </button>
+    <button class="nav-btn" data-target="balances" title="Balances">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 3v18h18"/><path d="M7 13l3-6 3 12 3-8"/></svg>
+      <span class="small">Balances</span>
+    </button>
+  </nav>
+
+<!-- Modal placeholder -->
+<div id="modalRoot"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+
+/* ---------- Helpers & Keys ---------- */
+const KEY_REC = 'sg_recetas_v3';
+const KEY_CAT = 'sg_cats_v3';
+const KEY_MOV = 'sg_mov_v3';
+const KEY_RES = 'sg_res_v3';
+
+const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#fb7185','#06b6d4','#f97316'];
+
+const $ = (s,root=document) => root.querySelector(s);
+const $all = (s,root=document) => Array.from(root.querySelectorAll(s));
+const esc = s => (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+/* ---------- Load data ---------- */
+let recetas = JSON.parse(localStorage.getItem(KEY_REC) || '[]');
+let categories = JSON.parse(localStorage.getItem(KEY_CAT) || '["Cuotas","Eventos","Compras","Otros"]');
+let movimientos = JSON.parse(localStorage.getItem(KEY_MOV) || '[]');
+let reservas = JSON.parse(localStorage.getItem(KEY_RES) || '[]');
+
+function saveAll(){
+  localStorage.setItem(KEY_REC, JSON.stringify(recetas));
+  localStorage.setItem(KEY_CAT, JSON.stringify(categories));
+  localStorage.setItem(KEY_MOV, JSON.stringify(movimientos));
+  localStorage.setItem(KEY_RES, JSON.stringify(reservas));
+}
+
+/* ---------- Navigation ---------- */
+$all('.nav-btn').forEach(btn=> btn.addEventListener('click', ()=>{
+  $all('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  showSection(btn.dataset.target);
+}));
+function showSection(id){
+  $all('section').forEach(s=> s.classList.add('hidden'));
+  const el = $('#'+id); if(el) el.classList.remove('hidden');
+  if(id==='inicio') renderInicio();
+  if(id==='recetas') renderRecetas();
+  if(id==='categorias') renderCategorias();
+  if(id==='contabilidad') renderMovimientos();
+  if(id==='reservas') renderReservas();
+  if(id==='balances') renderBalances();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Inicio ---------- */
+function renderInicio(){
+  $('#cntRecetas').textContent = recetas.length;
+  $('#cntMenus').textContent = 0;
+  $('#cntReservas').textContent = reservas.length;
+  updateGlobalSaldo();
+  const today = new Date().toISOString().slice(0,10);
+  const prox = reservas.filter(r=> r.fecha >= today ).sort((a,b)=> a.fecha.localeCompare(b.fecha)).slice(0,3);
+  $('#proxReservas').innerHTML = prox.map(r=>`<div class="p-2 rounded-lg bg-white"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.fecha)} ${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`).join('') || '<div class="small text-gray-400">No hay reservas próximas</div>';
+}
+
+/* ---------- Recetas ---------- */
+$('#formReceta').addEventListener('submit', e=>{
+  e.preventDefault();
+  const nombre = $('#rNombre').value.trim();
+  const ingredientes = $('#rIngredientes').value.trim();
+  if(!nombre) return alert('Nombre requerido');
+  recetas.unshift({id:uid(), nombre, ingredientes});
+  saveAll();
+  $('#formReceta').reset();
+  renderRecetas();
+  renderInicio();
+});
+$('#limpiarRec').addEventListener('click', ()=> $('#formReceta').reset());
+function renderRecetas(){
+  $('#listaRecetas').innerHTML = recetas.map(r=>`<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.ingredientes)}</div></div>`).join('') || '<div class="small text-gray-400">No hay recetas</div>';
+}
+
+/* ---------- Categorías visual (burbujas) ---------- */
+function colorForIndex(i){ return palette[i % palette.length]; }
+
+function renderCategorias(){
+  const grid = $('#catGrid');
+  grid.innerHTML = '';
+  categories.forEach((c, idx) => {
+    const color = colorForIndex(idx);
+    const card = document.createElement('div');
+    card.className = 'cat-card fade-in';
+    card.style.background = color;
+    card.dataset.idx = idx;
+
+    const label = document.createElement('div');
+    label.style.textAlign = 'center';
+    label.style.pointerEvents = 'none';
+    label.innerHTML = `<div style="font-size:15px">${esc(c)}</div>`;
+
+    const actions = document.createElement('div');
+    actions.className = 'cat-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'cat-btn';
+    editBtn.style.background = 'rgba(255,255,255,0.95)';
+    editBtn.style.color = color;
+    editBtn.textContent = '✏️';
+    editBtn.title = 'Editar';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'cat-btn';
+    delBtn.style.background = 'rgba(0,0,0,0.06)';
+    delBtn.style.color = '#111';
+    delBtn.textContent = '🗑️';
+    delBtn.title = 'Borrar';
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.maxWidth = '140px';
+    wrapper.appendChild(card);
+    wrapper.appendChild(actions);
+
+    card.appendChild(label);
+
+    editBtn.addEventListener('click', ()=>{
+      card.style.display = 'none';
+      actions.style.display = 'none';
+      const editBox = document.createElement('div');
+      editBox.style.display = 'flex';
+      editBox.style.flexDirection = 'column';
+      editBox.style.alignItems = 'center';
+      editBox.style.width = '120px';
+      const input = document.createElement('input');
+      input.className = 'field';
+      input.style.width = '100%';
+      input.value = c;
+      const btns = document.createElement('div');
+      btns.style.display = 'flex';
+      btns.style.gap = '8px';
+      btns.style.marginTop = '8px';
+      const save = document.createElement('button');
+      save.className = 'btn success';
+      save.textContent = 'Guardar';
+      const cancel = document.createElement('button');
+      cancel.className = 'btn btn-ghost';
+      cancel.textContent = 'Cancelar';
+      btns.appendChild(save);
+      btns.appendChild(cancel);
+      editBox.appendChild(input);
+      editBox.appendChild(btns);
+      wrapper.appendChild(editBox);
+      input.focus();
+
+      save.addEventListener('click', ()=>{
+        const nv = input.value.trim();
+        if(!nv){ alert('Nombre inválido'); return; }
+        if(categories.includes(nv) && nv !== c){ alert('La categoría ya existe'); return; }
+        categories[idx] = nv;
+        saveAll();
+        renderCategorias();
+        renderMovimientos();
+        renderBalances();
+      });
+      cancel.addEventListener('click', ()=>{ editBox.remove(); card.style.display = ''; actions.style.display = ''; });
+    });
+
+    delBtn.addEventListener('click', ()=>{
+      wrapper.classList.add('fade-out');
+      setTimeout(()=>{
+        const rem = categories.splice(idx,1)[0];
+        movimientos.forEach(m => { if(m.categoria === rem) m.categoria = 'Otros'; });
+        if(!categories.includes('Otros')) categories.push('Otros');
+        saveAll();
+        renderCategorias();
+        renderMovimientos();
+        renderBalances();
+        updateGlobalSaldo();
+      }, 260);
+    });
+
+    grid.appendChild(wrapper);
+  });
+
+  const sel = $('#movCategoria');
+  if(sel){
+    sel.innerHTML = '<option value="">-- Selecciona --</option>';
+    categories.forEach(c=> sel.insertAdjacentHTML('beforeend', `<option value="${esc(c)}">${esc(c)}</option>`));
+  }
+}
+
+/* Add category */
+$('#addCatBtn').addEventListener('click', ()=>{
+  const name = $('#newCatName').value.trim();
+  if(!name) return alert('Escribe un nombre');
+  if(categories.includes(name)) return alert('La categoría ya existe');
+  categories.push(name);
+  $('#newCatName').value = '';
+  saveAll();
+  renderCategorias();
+  renderBalances();
+});
+
+/* ---------- Movimientos ---------- */
+$('#formMov').addEventListener('submit', e=>{
+  e.preventDefault();
+  const id = $('#movId').value || uid();
+  const tipo = $('#movTipo').value;
+  const importe = Number($('#movImporte').value || 0);
+  const fecha = $('#movFecha').value || new Date().toISOString().slice(0,10);
+  const categoria = $('#movCategoria').value || 'Otros';
+  const concepto = $('#movConcepto').value.trim() || '';
+  const existing = movimientos.find(m=>m.id===id);
+  if(existing) Object.assign(existing,{tipo,importe,fecha,categoria,concepto});
+  else movimientos.unshift({id,tipo,importe,fecha,categoria,concepto});
+  saveAll();
+  $('#formMov').reset(); $('#movId').value='';
+  renderMovimientos(); renderBalances(); updateGlobalSaldo();
+});
+$('#limpiarMov').addEventListener('click', ()=> { $('#formMov').reset(); $('#movId').value=''; });
+
+function renderMovimientos(){
+  $('#listaMovimientos').innerHTML = movimientos.slice(0,50).map(m=>`
+    <div class="p-2 border rounded mb-2 flex justify-between items-start">
+      <div>
+        <div class="font-semibold">${esc(m.concepto || m.categoria)}</div>
+        <div class="small text-gray-500">${esc(m.fecha)} • ${esc(m.categoria)}</div>
+      </div>
+      <div class="text-right">
+        <div class="${m.tipo==='ingreso'?'text-emerald-600':'text-rose-600'} font-semibold">${m.tipo==='ingreso'?'+':'-'}${Number(m.importe).toFixed(2)} €</div>
+        <div class="flex gap-2 mt-2">
+          <button data-id="${m.id}" class="edit-mov btn btn-ghost">Editar</button>
+          <button data-id="${m.id}" class="del-mov btn btn-ghost">Borrar</button>
+        </div>
+      </div>
+    </div>`).join('') || '<div class="small text-gray-400">Sin movimientos</div>';
+
+  $all('.edit-mov').forEach(b=> b.addEventListener('click', e=>{
+    const id = e.currentTarget.dataset.id; const mv = movimientos.find(x=>x.id===id); if(!mv) return;
+    $('#movId').value = mv.id; $('#movTipo').value = mv.tipo; $('#movImporte').value = mv.importe; $('#movFecha').value = mv.fecha; $('#movCategoria').value = mv.categoria; $('#movConcepto').value = mv.concepto; showSection('contabilidad');
+  }));
+  $all('.del-mov').forEach(b=> b.addEventListener('click', e=>{
+    const id = e.currentTarget.dataset.id; movimientos = movimientos.filter(m=> m.id !== id); saveAll(); renderMovimientos(); renderBalances(); updateGlobalSaldo();
+  }));
+}
+
+/* ---------- Reservas ---------- */
+$('#formRes').addEventListener('submit', e=>{
+  e.preventDefault();
+  const nombre = $('#resNombre').value.trim(); const fecha = $('#resFecha').value; const hora = $('#resHora').value; const pax = Number($('#resPax').value||1);
+  if(!nombre || !fecha) return alert('Nombre y fecha requeridos');
+  reservas.unshift({id:uid(), nombre, fecha, hora, pax});
+  saveAll(); $('#formRes').reset(); renderReservas(); renderInicio();
+});
+$('#limpiarRes').addEventListener('click', ()=> $('#formRes').reset());
+function renderReservas(){
+  $('#listaReservas').innerHTML = reservas.slice().sort((a,b)=> a.fecha.localeCompare(b.fecha)).slice(0,10).map(r=>`<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.fecha)} ${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`).join('') || '<div class="small text-gray-400">No hay reservas</div>';
+}
+
+/* ---------- Balances ---------- */
+function renderBalances(){
+  const summary = {};
+  categories.concat(['Otros']).forEach(c=> summary[c] = {ing:0,gas:0});
+  movimientos.forEach(m=>{ const c = m.categoria || 'Otros'; if(!summary[c]) summary[c] = {ing:0,gas:0}; if(m.tipo==='ingreso') summary[c].ing += Number(m.importe||0); else summary[c].gas += Number(m.importe||0); });
+  const tbody = $('#tablaBalances tbody'); tbody.innerHTML = '';
+  let totalIng=0,totalGas=0;
+  Object.keys(summary).forEach(cat=>{
+    const ing = summary[cat].ing, gas = summary[cat].gas, bal = ing - gas;
+    totalIng += ing; totalGas += gas;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="small">${esc(cat)}</td><td>${ing.toFixed(2)}</td><td>${gas.toFixed(2)}</td><td>${bal.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+  $('#sumIngresos').textContent = totalIng.toFixed(2);
+  $('#sumGastos').textContent = totalGas.toFixed(2);
+  $('#sumSaldo').textContent = (totalIng-totalGas).toFixed(2);
+}
+
+/* ---------- Global saldo ---------- */
+function updateGlobalSaldo(){
+  const ingresos = movimientos.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+Number(m.importe||0),0);
+  const gastos = movimientos.filter(m=>m.tipo==='gasto').reduce((s,m)=>s+Number(m.importe||0),0);
+  $('#saldoGlobal').textContent = (ingresos - gastos).toFixed(2) + ' €';
+}
+
+/* ---------- Options modal: export/import/reset (visual) ---------- */
+function showOptionsModal(){
+  const root = $('#modalRoot');
+  root.innerHTML = '';
+  const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+  const modal = document.createElement('div'); modal.className = 'modal';
+  modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Opciones</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="expBtn" class="btn success">Exportar datos (descarga JSON)</button>
+      <button id="impOpen" class="btn btn-ghost">Importar datos (pegar JSON)</button>
+      <button id="resetOpen" class="btn btn-ghost">Borrar todos los datos</button>
+      <button id="closeBtn" class="btn btn-ghost">Cerrar</button>
+    </div>`;
+  overlay.appendChild(modal); root.appendChild(overlay);
+
+  $('#closeBtn', modal).addEventListener('click', ()=> root.innerHTML = '');
+  $('#expBtn', modal).addEventListener('click', ()=>{
+    const data = { recetas, categories, movimientos, reservas };
+    const a = document.createElement('a');
+    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data,null,2));
+    a.download = 'sg_data_v3.json';
+    a.click();
+  });
+  $('#impOpen', modal).addEventListener('click', ()=> {
+    modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Importar datos (pega aquí JSON)</div>
+      <textarea id="impText" style="width:100%;height:160px;padding:8px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px"><button id="doImp" class="btn btn-primary">Importar</button><button id="impCancel" class="btn btn-ghost">Cancelar</button></div>`;
+    $('#impCancel').addEventListener('click', ()=> root.innerHTML = '');
+    $('#doImp').addEventListener('click', ()=>{
+      try{
+        const obj = JSON.parse($('#impText').value);
+        if(!obj) throw new Error('JSON inválido');
+        recetas = obj.recetas || [];
+        categories = obj.categories || categories;
+        movimientos = obj.movimientos || [];
+        reservas = obj.reservas || [];
+        saveAll();
+        renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); renderInicio();
+        root.innerHTML = '';
+        alert('Importado correctamente');
+      }catch(e){ alert('JSON inválido. Revisa el formato.'); }
+    });
+  });
+  $('#resetOpen', modal).addEventListener('click', ()=> {
+    modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Borrar todos los datos</div>
+      <div class="small muted">Escribe la palabra <strong>REINICIAR</strong> en el campo para confirmar.</div>
+      <input id="confirmReset" class="field" placeholder="Escribe REINICIAR">
+      <div style="display:flex;gap:8px;margin-top:8px"><button id="doReset" class="btn danger">Borrar</button><button id="resetCancel" class="btn btn-ghost">Cancelar</button></div>`;
+    $('#resetCancel').addEventListener('click', ()=> root.innerHTML = '');
+    $('#doReset').addEventListener('click', ()=>{
+      if($('#confirmReset').value.trim() !== 'REINICIAR'){ alert('Escribe REINICIAR para confirmar'); return; }
+      recetas = []; categories = ['Cuotas','Eventos','Compras','Otros']; movimientos = []; reservas = [];
+      saveAll();
+      renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); renderInicio();
+      root.innerHTML = '';
+      alert('Datos reiniciados');
+    });
+  });
+}
+
+$('#btnOptions').addEventListener('click', showOptionsModal);
+
+/* ---------- Init ---------- */
+renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); renderInicio();
+
+/* Accessibility: focus first input on section show */
+$all('.nav-btn').forEach(btn=> btn.addEventListener('click', ()=> setTimeout(()=>{ const s=document.getElementById(btn.dataset.target); const f = s && s.querySelector('input,textarea,select'); if(f) f.focus(); }, 300) ));
+
+}); // DOMContentLoaded
+</script>
+</body>
+</html>
