@@ -35,7 +35,7 @@
   .btn-primary{background:#0ea5a4;color:white}
   .btn-ghost{background:white;border:1px solid #e5e7eb}
   .small{font-size:13px;color:var(--muted)}
-  /* categories bubbles */
+  /* categories */
   .cat-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding-top:12px}
   .cat-card{width:120px;height:90px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;position:relative;transition:transform .25s,opacity .25s}
   .cat-actions{display:flex;gap:8px;justify-content:center;margin-top:8px}
@@ -191,33 +191,8 @@
         </div>
       </form>
 
-      <div class="mb-3 flex items-center justify-between gap-2">
-        <div class="small">Filtrar período:</div>
-        <div class="flex gap-2 items-center">
-          <select id="periodoSelect" class="field w-auto">
-            <option value="all">Todo</option>
-            <option value="30">Últimos 30 días</option>
-            <option value="90">Últimos 90 días</option>
-            <option value="year">Este año</option>
-            <option value="custom">Personalizado</option>
-          </select>
-          <input id="periodFrom" type="date" class="field" style="display:none">
-          <input id="periodTo" type="date" class="field" style="display:none">
-          <button id="aplicarPeriodo" class="btn btn-ghost">Aplicar</button>
-        </div>
-      </div>
-
       <div class="small text-gray-500 mb-2">Últimos movimientos</div>
       <div id="listaMovimientos" class="space-y-2 mb-4"></div>
-
-      <div class="font-semibold mb-2">Balances por categoría</div>
-      <div class="overflow-x-auto">
-        <table id="tablaBalances" class="w-full">
-          <thead><tr><th>Categoría</th><th>Ingresos (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr><td>Total</td><td id="sumIngresos">0,00</td><td id="sumGastos">0,00</td><td id="sumSaldo">0,00</td></tr></tfoot>
-        </table>
-      </div>
     </section>
 
     <!-- Reservas -->
@@ -263,6 +238,60 @@
       </div>
     </section>
 
+    <!-- Balances (NUEVO) -->
+    <section id="balances" class="card hidden">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-semibold">Balances</div>
+        <div class="small">Selecciona categoría para ver movimientos</div>
+      </div>
+
+      <!-- Ingresos -->
+      <div class="mb-3">
+        <div class="font-semibold small mb-2">INGRESOS</div>
+        <div id="ingresosBtns" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Gastos -->
+      <div class="mb-3">
+        <div class="font-semibold small mb-2">GASTOS</div>
+        <div id="gastosBtns" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Selected category area (appears when a category clicked) -->
+      <div id="catDetails" class="hidden card">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <div id="catTitle" class="text-lg font-semibold"></div>
+            <div id="catType" class="small muted"></div>
+          </div>
+          <div>
+            <button id="clearCat" class="btn btn-ghost">Cerrar</button>
+          </div>
+        </div>
+
+        <!-- Date filters (only visible here) -->
+        <div class="flex gap-2 items-center mb-3">
+          <div class="small muted">Filtrar periodo:</div>
+          <input id="filterFrom" type="date" class="field w-auto">
+          <input id="filterTo" type="date" class="field w-auto">
+          <button id="applyFilter" class="btn btn-primary">Aplicar</button>
+        </div>
+
+        <!-- Movements list for the selected category -->
+        <div id="movsByCat" class="space-y-2 mb-3"></div>
+      </div>
+
+      <!-- Summary table -->
+      <div class="font-semibold mb-2">Balances por categoría</div>
+      <div class="overflow-x-auto">
+        <table id="tablaBalances" class="w-full">
+          <thead><tr><th>Categoría</th><th>Ingresos (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td>Total</td><td id="sumIngresos">0,00</td><td id="sumGastos">0,00</td><td id="sumSaldo">0,00</td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
   </div>
 
   <!-- Bottom nav -->
@@ -297,16 +326,15 @@
 <div id="modalRoot"></div>
 
 <script>
-/* ---------- App JS: local-only, single file ---------- */
 document.addEventListener('DOMContentLoaded', ()=>{
 
 /* Keys */
-const K_REC = 'ajop_recetas_v4';
-const K_CAT = 'ajop_cats_v4';
-const K_MOV = 'ajop_mov_v4';
-const K_RES = 'ajop_res_v4';
+const K_REC = 'ajop_recetas_v5';
+const K_CAT = 'ajop_cats_v5';
+const K_MOV = 'ajop_mov_v5';
+const K_RES = 'ajop_res_v5';
 
-/* Paleta base (colores principales) and soft backgrounds */
+/* Palette and soft backgrounds */
 const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#fb7185','#06b6d4','#f97316'];
 const soft = ['var(--soft-0)','var(--soft-1)','var(--soft-2)','var(--soft-3)','var(--soft-4)','var(--soft-5)','var(--soft-6)','var(--soft-7)'];
 
@@ -385,10 +413,8 @@ function showDetalleReceta(id){
   $('#dMeta').textContent = `Creada: ${new Date(r.created).toLocaleString()}`;
   $('#dIngredientes').textContent = r.ingredientes || '(sin ingredientes)';
   $('#dInstrucciones').textContent = r.instrucciones || '(sin instrucciones)';
-  // set actions
   $('#editRecBtn').onclick = ()=> openEditReceta(r.id);
   $('#delRecBtn').onclick = ()=> {
-    // delete silently (no prompt), re-render
     recetas = recetas.filter(x=>x.id!==r.id);
     saveAll(); renderRecetas(); $('#detalleReceta').classList.add('hidden'); renderInicio();
   };
@@ -396,15 +422,11 @@ function showDetalleReceta(id){
 
 function openEditReceta(id){
   const r = recetas.find(x=>x.id===id); if(!r) return;
-  // populate form for edit
   $('#rNombre').value = r.nombre;
   $('#rIngredientes').value = r.ingredientes;
   $('#rInstrucciones').value = r.instrucciones;
-  // remove old listener and replace submit behavior to save edit
   const form = $('#formReceta');
-  // temporarily set movId in dataset
   form.dataset.editing = r.id;
-  // change button text
   const saveBtn = form.querySelector('button[type="submit"]');
   const prevText = saveBtn.textContent;
   saveBtn.textContent = 'Guardar cambios';
@@ -425,7 +447,7 @@ function openEditReceta(id){
   form.addEventListener('submit', onSubmit);
 }
 
-/* ---------- CATEGORIES (bubbles with automatic colors) ---------- */
+/* ---------- CATEGORIES ---------- */
 function colorForIndex(i){ return palette[i % palette.length]; }
 function softForIndex(i){ return soft[i % soft.length]; }
 
@@ -433,9 +455,7 @@ function renderCategorias(){
   const grid = $('#catGrid'); grid.innerHTML = '';
   categories.forEach((c, idx)=>{
     const color = colorForIndex(idx);
-    const bg = softForIndex(idx);
-    const card = document.createElement('div'); card.className='cat-card fade-in';
-    card.style.background = color; card.dataset.idx = idx;
+    const card = document.createElement('div'); card.className='cat-card fade-in'; card.style.background = color; card.dataset.idx = idx;
     card.innerHTML = `<div style="text-align:center;pointer-events:none"><div style="font-size:15px">${esc(c)}</div></div>`;
     const actions = document.createElement('div'); actions.className='cat-actions';
     const editBtn = document.createElement('button'); editBtn.className='cat-btn'; editBtn.style.background='rgba(255,255,255,0.95)'; editBtn.style.color=color; editBtn.textContent='✏️';
@@ -444,7 +464,6 @@ function renderCategorias(){
     const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.flexDirection='column'; wrapper.style.alignItems='center'; wrapper.style.maxWidth='140px';
     wrapper.appendChild(card); wrapper.appendChild(actions);
     editBtn.addEventListener('click', ()=> {
-      // inline edit
       card.style.display='none'; actions.style.display='none';
       const box = document.createElement('div'); box.style.display='flex'; box.style.flexDirection='column'; box.style.alignItems='center'; box.style.width='120px';
       const input = document.createElement('input'); input.className='field'; input.style.width='100%'; input.value = c;
@@ -470,7 +489,6 @@ function renderCategorias(){
     });
     grid.appendChild(wrapper);
   });
-  // update mov category select
   const sel = $('#movCategoria'); if(sel){ sel.innerHTML = '<option value="">-- Selecciona --</option>'; categories.forEach(c=> sel.insertAdjacentHTML('beforeend', `<option value="${esc(c)}">${esc(c)}</option>`)); }
 }
 $('#addCatBtn').addEventListener('click', ()=>{
@@ -528,34 +546,30 @@ function renderReservas(){
   $('#cntReservas').textContent = reservas.length;
 }
 
-/* Calendar rendering and navigation */
+/* Calendar */
 let now = new Date();
 let currentYear = now.getFullYear();
-let currentMonth = now.getMonth(); // 0-based
+let currentMonth = now.getMonth();
 function renderCalendar(year, month){
   currentYear = year; currentMonth = month;
   const cal = $('#calendar'); cal.innerHTML = '';
   const first = new Date(year, month, 1);
-  const startDay = first.getDay(); // 0..6 (Sun..Sat)
+  const startDay = first.getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const prevDays = startDay;
-  // show month title
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   $('#calMonth').textContent = `${monthNames[month]} ${year}`;
-  // build grid: fill previous month's blanks
   const totalCells = Math.ceil((prevDays + daysInMonth)/7)*7;
   for(let i=0;i<totalCells;i++){
     const cell = document.createElement('div'); cell.className='cal-day';
     const dayIndex = i - prevDays + 1;
     if(dayIndex < 1 || dayIndex > daysInMonth){
-      cell.classList.add('other');
-      cell.innerHTML = `<div class="date muted">&nbsp;</div>`;
+      cell.classList.add('other'); cell.innerHTML = `<div class="date muted">&nbsp;</div>`;
     } else {
       const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(dayIndex).padStart(2,'0')}`;
       const dayRes = reservas.filter(r=> r.fecha === dateStr);
       cell.innerHTML = `<div class="date">${dayIndex}</div>`;
       if(dayRes.length){
-        // show colored dots for each reservation (up to 3)
         const dots = document.createElement('div');
         dayRes.slice(0,3).forEach((d,ii)=> {
           const el = document.createElement('span'); el.className='dot'; el.style.marginRight='6px';
@@ -563,7 +577,6 @@ function renderCalendar(year, month){
           dots.appendChild(el);
         });
         const more = dayRes.length>3 ? `<div class="small muted">${dayRes.length} reservas</div>` : '';
-        const wrap = document.createElement('div'); wrap.appendChild(dots);
         cell.appendChild(dots);
         if(more) cell.insertAdjacentHTML('beforeend', more);
       }
@@ -575,7 +588,6 @@ function renderCalendar(year, month){
   }
 }
 
-/* Show reservas of a specific day */
 function showReservasDia(dateStr){
   const list = reservas.filter(r=> r.fecha === dateStr).sort((a,b)=> a.hora.localeCompare(b.hora));
   const container = $('#listaReservasDia'); container.innerHTML = `<div class="font-semibold">Reservas ${dateStr}</div>`;
@@ -584,41 +596,104 @@ function showReservasDia(dateStr){
     container.insertAdjacentHTML('beforeend', `<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`);
   });
 }
-
-/* Calendar nav */
 $('#calPrev').addEventListener('click', ()=> { const m = currentMonth-1; const y = m<0 ? currentYear-1 : currentYear; const mm = (m+12)%12; renderCalendar(y, mm); });
 $('#calNext').addEventListener('click', ()=> { const m = currentMonth+1; const y = m>11 ? currentYear+1 : currentYear; const mm = m%12; renderCalendar(y, mm); });
 
-/* ---------- BALANCES (period filtering + colored rows) ---------- */
-function getDateRangeFromPeriod(period){
-  const today = new Date();
-  if(period === 'all') return [null,null];
-  if(period === '30'){ const from = new Date(); from.setDate(today.getDate()-30); return [from.toISOString().slice(0,10), today.toISOString().slice(0,10)]; }
-  if(period === '90'){ const from = new Date(); from.setDate(today.getDate()-90); return [from.toISOString().slice(0,10), today.toISOString().slice(0,10)]; }
-  if(period === 'year'){ const from = new Date(today.getFullYear(),0,1); return [from.toISOString().slice(0,10), today.toISOString().slice(0,10)]; }
-  return [null,null];
+/* ---------- BALANCES (nuevo comportamiento) ---------- */
+function renderBalances(){
+  // build buttons for ingresos/gastos (only categories that actually have movements)
+  const ingresosSet = new Set();
+  const gastosSet = new Set();
+  movimientos.forEach(m=>{
+    if(m.tipo === 'ingreso') ingresosSet.add(m.categoria || 'Otros');
+    if(m.tipo === 'gasto') gastosSet.add(m.categoria || 'Otros');
+  });
+
+  // ensure categories present in lists (ordered by categories array)
+  const ingresos = categories.filter(c=> ingresosSet.has(c));
+  const gastos = categories.filter(c=> gastosSet.has(c));
+
+  const ingContainer = $('#ingresosBtns'); ingContainer.innerHTML = '';
+  const gasContainer = $('#gastosBtns'); gasContainer.innerHTML = '';
+
+  ingresos.forEach((cat,idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.style.background = softForIndex(categories.indexOf(cat));
+    btn.style.border = '1px solid rgba(0,0,0,0.06)';
+    btn.style.color = 'var(--icon)';
+    btn.textContent = `${cat} (+)`;
+    btn.dataset.cat = cat; btn.dataset.type = 'ingreso';
+    btn.addEventListener('click', ()=> selectCategory(cat,'ingreso'));
+    ingContainer.appendChild(btn);
+  });
+
+  gastos.forEach((cat,idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.style.background = softForIndex(categories.indexOf(cat));
+    btn.style.border = '1px solid rgba(0,0,0,0.06)';
+    btn.style.color = 'var(--icon)';
+    btn.textContent = `${cat} (-)`;
+    btn.dataset.cat = cat; btn.dataset.type = 'gasto';
+    btn.addEventListener('click', ()=> selectCategory(cat,'gasto'));
+    gasContainer.appendChild(btn);
+  });
+
+  // update summary table below
+  updateSummaryTable();
 }
 
-$('#periodoSelect').addEventListener('change', ()=> {
-  const v = $('#periodoSelect').value;
-  if(v === 'custom'){ $('#periodFrom').style.display='inline-block'; $('#periodTo').style.display='inline-block'; }
-  else { $('#periodFrom').style.display='none'; $('#periodTo').style.display='none'; }
-});
-$('#aplicarPeriodo').addEventListener('click', ()=> renderBalances());
+/* When category selected */
+function selectCategory(cat, type){
+  $('#catDetails').classList.remove('hidden');
+  $('#catTitle').textContent = cat;
+  $('#catType').textContent = (type==='ingreso') ? 'Movimientos de ingreso' : 'Movimientos de gasto';
+  // clear filters
+  $('#filterFrom').value = ''; $('#filterTo').value = '';
+  // store selection on element
+  $('#catDetails').dataset.selectedCat = cat;
+  $('#catDetails').dataset.selectedType = type;
+  renderMovsForCategory(cat,type);
+}
 
-function renderBalances(){
-  // determine date range
-  const p = $('#periodoSelect').value;
-  let from=null,to=null;
-  if(p==='custom'){ from = $('#periodFrom').value || null; to = $('#periodTo').value || null; }
-  else { [from,to] = getDateRangeFromPeriod(p); }
-  // prepare summary
+/* Apply filter button on details */
+$('#applyFilter').addEventListener('click', ()=> {
+  const cat = $('#catDetails').dataset.selectedCat;
+  const type = $('#catDetails').dataset.selectedType;
+  if(!cat) return;
+  renderMovsForCategory(cat,type);
+});
+
+$('#clearCat').addEventListener('click', ()=> {
+  $('#catDetails').classList.add('hidden');
+  delete $('#catDetails').dataset.selectedCat;
+  delete $('#catDetails').dataset.selectedType;
+});
+
+/* Render movements for a selected category with optional date filter */
+function renderMovsForCategory(cat,type){
+  const from = $('#filterFrom').value || null;
+  const to = $('#filterTo').value || null;
+  let list = movimientos.filter(m=> (m.categoria || 'Otros') === cat && m.tipo === type);
+  if(from) list = list.filter(m=> m.fecha >= from);
+  if(to) list = list.filter(m=> m.fecha <= to);
+  list = list.sort((a,b)=> b.fecha.localeCompare(a.fecha));
+  const container = $('#movsByCat'); container.innerHTML = '';
+  if(list.length===0){ container.innerHTML = '<div class="small muted">No hay movimientos en este rango</div>'; return; }
+  list.forEach(m=>{
+    const div = document.createElement('div'); div.className='p-2 border rounded mb-2 flex justify-between items-start';
+    div.innerHTML = `<div><div class="font-semibold">${esc(m.concepto || m.categoria)}</div><div class="small text-gray-500">${esc(m.fecha)}</div></div>
+      <div class="text-right"><div class="${m.tipo==='ingreso'?'text-emerald-600':'text-rose-600'} font-semibold">${m.tipo==='ingreso'?'+':'-'}${Number(m.importe).toFixed(2)} €</div></div>`;
+    container.appendChild(div);
+  });
+}
+
+/* Summary table */
+function updateSummaryTable(){
   const summary = {};
   categories.concat(['Otros']).forEach((c)=> summary[c] = {ing:0,gas:0});
   movimientos.forEach(m=>{
-    const fecha = m.fecha;
-    if(from && fecha < from) return;
-    if(to && fecha > to) return;
     const c = m.categoria || 'Otros';
     if(!summary[c]) summary[c] = {ing:0,gas:0};
     if(m.tipo === 'ingreso') summary[c].ing += Number(m.importe||0);
@@ -684,14 +759,13 @@ $('#btnOptions').addEventListener('click', ()=> {
   };
 });
 
-/* ---------- Render all helpers ---------- */
-function renderAll(){ renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); renderInicio(); renderCalendar(currentYear, currentMonth); }
+/* ---------- Render all ---------- */
+function renderAll(){
+  renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); updateGlobalSaldo(); renderCalendar(currentYear, currentMonth);
+}
 renderAll();
 
-/* init calendar: default month current */
-renderCalendar(currentYear, currentMonth);
-
-/* Accessibility: focus first input */
+/* Accessibility focus */
 $all('.nav-btn').forEach(btn=> btn.addEventListener('click', ()=> setTimeout(()=>{ const s=document.getElementById(btn.dataset.target); const f = s && s.querySelector('input,textarea,select'); if(f) f.focus(); }, 300) ));
 
 }); // DOMContentLoaded
