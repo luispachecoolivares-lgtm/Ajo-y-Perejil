@@ -23,7 +23,7 @@
   html,body{height:100%}
   body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#0f172a;margin:0;-webkit-font-smoothing:antialiased}
   .safe-bottom{padding-bottom:calc(env(safe-area-inset-bottom)+14px)}
-  .container{max-width:980px;margin:0 auto;padding:16px;padding-bottom:110px}
+  .container{max-width:980px;margin:0 auto;padding:16px;padding-bottom:120px}
   .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(16,24,40,0.06);padding:14px;margin-bottom:12px}
   .nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;padding:10px calc(env(safe-area-inset-left)+8px) calc(env(safe-area-inset-bottom)+12px) calc(env(safe-area-inset-right)+8px);background:rgba(255,255,255,0.98);border-top:1px solid rgba(16,24,40,0.04);backdrop-filter:blur(6px)}
   .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted);background:none;border:0;padding:6px;border-radius:10px}
@@ -51,7 +51,7 @@
   tfoot td{font-weight:700}
   /* calendar */
   .cal {display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .cal-day{min-height:74px;border-radius:10px;padding:8px;background:linear-gradient(180deg,#ffffff,#fbfbfd);box-shadow:inset 0 0 0 1px rgba(15,23,42,0.02)}
+  .cal-day{min-height:72px;border-radius:10px;padding:8px;background:linear-gradient(180deg,#ffffff,#fbfbfd);box-shadow:inset 0 0 0 1px rgba(15,23,42,0.02)}
   .cal-day.other{opacity:.45}
   .cal-day .date{font-weight:700;margin-bottom:6px}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
@@ -60,6 +60,7 @@
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999}
   .modal{background:white;border-radius:12px;padding:16px;max-width:820px;width:92%;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
   .muted{color:var(--muted)}
+  .sum-box{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px}
   @media (max-width:520px){ .cat-card{width:100px;height:76px;font-size:13px} .container{padding:12px} .cal-day{min-height:64px} }
 </style>
 </head>
@@ -75,7 +76,7 @@
       </div>
     </header>
 
-    <!-- Inicio -->
+    <!-- INICIO -->
     <section id="inicio" class="card">
       <div class="flex justify-between items-start">
         <div>
@@ -87,7 +88,6 @@
           <div id="saldoGlobal" class="text-lg font-bold">0,00 €</div>
         </div>
       </div>
-
       <div class="grid grid-cols-3 gap-3 mt-4">
         <div class="text-center p-3 rounded-lg bg-white">
           <div class="small">Recetas</div>
@@ -104,13 +104,12 @@
       </div>
     </section>
 
-    <!-- Recetas -->
+    <!-- RECETAS -->
     <section id="recetas" class="card hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="font-semibold">Recetas</div>
         <div class="small">Guarda y muestra tus recetas</div>
       </div>
-
       <div class="grid md:grid-cols-2 gap-4">
         <form id="formReceta" class="space-y-2">
           <input id="rNombre" class="field" placeholder="Nombre de la receta" required>
@@ -149,7 +148,7 @@
       </div>
     </section>
 
-    <!-- Categorías -->
+    <!-- CATEGORÍAS -->
     <section id="categorias" class="card hidden">
       <div class="flex items-center justify-between">
         <div class="font-semibold">Categorías</div>
@@ -164,7 +163,7 @@
       <div id="catGrid" class="cat-grid mt-3"></div>
     </section>
 
-    <!-- Contabilidad -->
+    <!-- CONTABILIDAD -->
     <section id="contabilidad" class="card hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="font-semibold">Contabilidad</div>
@@ -195,11 +194,11 @@
       <div id="listaMovimientos" class="space-y-2 mb-4"></div>
     </section>
 
-    <!-- Reservas -->
+    <!-- RESERVAS -->
     <section id="reservas" class="card hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="font-semibold">Reservas</div>
-        <div class="small">Calendario y formulario</div>
+        <div class="small">Calendario, formulario e historial</div>
       </div>
 
       <div class="grid md:grid-cols-2 gap-4">
@@ -212,9 +211,11 @@
             </div>
             <div class="small muted">Mes actual y navegación</div>
           </div>
+
           <div class="grid grid-cols-7 gap-2 text-center muted small mb-2">
             <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
           </div>
+
           <div id="calendar" class="cal"></div>
           <div id="listaReservasDia" class="mt-3"></div>
         </div>
@@ -227,18 +228,28 @@
               <input id="resHora" type="time" class="field" value="20:00">
             </div>
             <input id="resPax" type="number" min="1" class="field" placeholder="Comensales" value="2">
+            <input id="resTipo" class="field" placeholder="Tipo de evento (texto libre)">
+            <input id="resMenu" class="field" placeholder="Menú (texto libre)">
             <div class="flex gap-2">
               <button class="btn btn-primary" type="submit">Guardar</button>
               <button id="limpiarRes" type="button" class="btn btn-ghost">Limpiar</button>
             </div>
           </form>
+
+          <div class="mt-3 flex items-center gap-2">
+            <button id="toggleHist" class="btn btn-ghost">Ver historial</button>
+            <div class="small muted">Historial de reservas pasadas</div>
+          </div>
+
+          <div id="historialReservas" class="mt-3 hidden"></div>
+
           <div class="small text-gray-500 mt-3">Próximas reservas</div>
           <div id="listaReservas" class="mt-2 small"></div>
         </div>
       </div>
     </section>
 
-    <!-- Balances (NUEVO) -->
+    <!-- BALANCES -->
     <section id="balances" class="card hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="font-semibold">Balances</div>
@@ -279,6 +290,9 @@
 
         <!-- Movements list for the selected category -->
         <div id="movsByCat" class="space-y-2 mb-3"></div>
+
+        <!-- Sumatorio y estado (icono) -->
+        <div id="sumCategoria" class="mt-2"></div>
       </div>
 
       <!-- Summary table -->
@@ -329,10 +343,10 @@
 document.addEventListener('DOMContentLoaded', ()=>{
 
 /* Keys */
-const K_REC = 'ajop_recetas_v5';
-const K_CAT = 'ajop_cats_v5';
-const K_MOV = 'ajop_mov_v5';
-const K_RES = 'ajop_res_v5';
+const K_REC = 'ajop_recetas_v6';
+const K_CAT = 'ajop_cats_v6';
+const K_MOV = 'ajop_mov_v6';
+const K_RES = 'ajop_res_v6';
 
 /* Palette and soft backgrounds */
 const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#fb7185','#06b6d4','#f97316'];
@@ -447,7 +461,7 @@ function openEditReceta(id){
   form.addEventListener('submit', onSubmit);
 }
 
-/* ---------- CATEGORIES ---------- */
+/* ---------- CATEGORÍAS ---------- */
 function colorForIndex(i){ return palette[i % palette.length]; }
 function softForIndex(i){ return soft[i % soft.length]; }
 
@@ -531,19 +545,63 @@ function renderMovimientos(){
   }));
 }
 
-/* ---------- RESERVAS & CALENDAR ---------- */
+/* ---------- RESERVAS & CALENDAR & HISTORIAL ---------- */
 $('#formRes').addEventListener('submit', e=>{
   e.preventDefault();
   const nombre = $('#resNombre').value.trim(); const fecha = $('#resFecha').value; const hora = $('#resHora').value; const pax = Number($('#resPax').value||1);
+  const tipo = $('#resTipo').value.trim(); const menu = $('#resMenu').value.trim();
   if(!nombre || !fecha) return alert('Nombre y fecha requeridos');
-  reservas.unshift({id: uid(), nombre, fecha, hora, pax, created: new Date().toISOString()});
-  saveAll(); $('#formRes').reset(); renderReservas(); renderInicio(); renderCalendar(currentYear, currentMonth);
+  reservas.unshift({id: uid(), nombre, fecha, hora, pax, tipo, menu, created: new Date().toISOString()});
+  saveAll(); $('#formRes').reset(); renderReservas(); renderInicio(); renderCalendar(currentYear, currentMonth); renderHistorial();
 });
 $('#limpiarRes').addEventListener('click', ()=> $('#formRes').reset());
 
 function renderReservas(){
   $('#listaReservas').innerHTML = reservas.slice().sort((a,b)=> a.fecha.localeCompare(b.fecha)).slice(0,10).map(r=>`<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.fecha)} ${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`).join('') || '<div class="small muted">No hay reservas</div>';
   $('#cntReservas').textContent = reservas.length;
+}
+
+/* Historial toggling and rendering (past reservations) */
+$('#toggleHist').addEventListener('click', ()=> {
+  const el = $('#historialReservas');
+  if(el.classList.contains('hidden')){ el.classList.remove('hidden'); $('#toggleHist').textContent = 'Ocultar historial'; renderHistorial(); }
+  else { el.classList.add('hidden'); $('#toggleHist').textContent = 'Ver historial'; }
+});
+function renderHistorial(){
+  const today = new Date().toISOString().slice(0,10);
+  const past = reservas.filter(r=> r.fecha < today).sort((a,b)=> b.fecha.localeCompare(a.fecha));
+  const el = $('#historialReservas'); el.innerHTML = '';
+  if(past.length===0){ el.innerHTML = '<div class="small muted">No hay reservas pasadas</div>'; return; }
+  past.forEach(r=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost w-full text-left';
+    btn.style.justifyContent = 'space-between';
+    btn.innerHTML = `<span>${esc(r.nombre)} — ${esc(r.fecha)} ${esc(r.hora||'')}</span><span class="small muted">${esc(r.tipo||'')}</span>`;
+    btn.addEventListener('click', ()=> showReservaDetalle(r.id));
+    el.appendChild(btn);
+  });
+}
+
+/* Show reservation details in modal */
+function showReservaDetalle(id){
+  const r = reservas.find(x=> x.id === id); if(!r) return;
+  const root = $('#modalRoot'); root.innerHTML = '';
+  const overlay = document.createElement('div'); overlay.className='modal-overlay';
+  const modal = document.createElement('div'); modal.className='modal';
+  modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Reserva: ${esc(r.nombre)}</div>
+    <div class="small muted">Creada: ${new Date(r.created).toLocaleString()}</div>
+    <div style="margin-top:8px">
+      <div><strong>Fecha:</strong> ${esc(r.fecha)} ${esc(r.hora||'')}</div>
+      <div><strong>Comensales:</strong> ${esc(String(r.pax || ''))}</div>
+      <div><strong>Tipo de evento:</strong> ${esc(r.tipo || '')}</div>
+      <div><strong>Menú:</strong> <pre style="white-space:pre-wrap;margin:6px 0">${esc(r.menu || '')}</pre></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button id="closeRes" class="btn btn-ghost">Cerrar</button><button id="delRes" class="btn btn-ghost">Borrar</button></div>`;
+  overlay.appendChild(modal); root.appendChild(overlay);
+  $('#closeRes', modal).onclick = ()=> root.innerHTML = '';
+  $('#delRes', modal).onclick = ()=> {
+    reservas = reservas.filter(x=> x.id !== id); saveAll(); renderReservas(); renderHistorial(); root.innerHTML = '';
+  };
 }
 
 /* Calendar */
@@ -593,13 +651,13 @@ function showReservasDia(dateStr){
   const container = $('#listaReservasDia'); container.innerHTML = `<div class="font-semibold">Reservas ${dateStr}</div>`;
   if(list.length===0){ container.insertAdjacentHTML('beforeend','<div class="small muted">No hay reservas para este día</div>'); return; }
   list.forEach(r=>{
-    container.insertAdjacentHTML('beforeend', `<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`);
+    container.insertAdjacentHTML('beforeend', `<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.hora||'')} • ${esc(r.pax)} pax • ${esc(r.tipo||'')} </div><div class="small">Menú: ${esc(r.menu||'')}</div></div>`);
   });
 }
 $('#calPrev').addEventListener('click', ()=> { const m = currentMonth-1; const y = m<0 ? currentYear-1 : currentYear; const mm = (m+12)%12; renderCalendar(y, mm); });
 $('#calNext').addEventListener('click', ()=> { const m = currentMonth+1; const y = m>11 ? currentYear+1 : currentYear; const mm = m%12; renderCalendar(y, mm); });
 
-/* ---------- BALANCES (nuevo comportamiento) ---------- */
+/* ---------- BALANCES (nuevo comportamiento, con sumatorio e icono) ---------- */
 function renderBalances(){
   // build buttons for ingresos/gastos (only categories that actually have movements)
   const ingresosSet = new Set();
@@ -609,7 +667,6 @@ function renderBalances(){
     if(m.tipo === 'gasto') gastosSet.add(m.categoria || 'Otros');
   });
 
-  // ensure categories present in lists (ordered by categories array)
   const ingresos = categories.filter(c=> ingresosSet.has(c));
   const gastos = categories.filter(c=> gastosSet.has(c));
 
@@ -649,15 +706,13 @@ function selectCategory(cat, type){
   $('#catDetails').classList.remove('hidden');
   $('#catTitle').textContent = cat;
   $('#catType').textContent = (type==='ingreso') ? 'Movimientos de ingreso' : 'Movimientos de gasto';
-  // clear filters
   $('#filterFrom').value = ''; $('#filterTo').value = '';
-  // store selection on element
   $('#catDetails').dataset.selectedCat = cat;
   $('#catDetails').dataset.selectedType = type;
   renderMovsForCategory(cat,type);
 }
 
-/* Apply filter button on details */
+/* Apply filter */
 $('#applyFilter').addEventListener('click', ()=> {
   const cat = $('#catDetails').dataset.selectedCat;
   const type = $('#catDetails').dataset.selectedType;
@@ -671,7 +726,7 @@ $('#clearCat').addEventListener('click', ()=> {
   delete $('#catDetails').dataset.selectedType;
 });
 
-/* Render movements for a selected category with optional date filter */
+/* Render movements for category and show sum + icon */
 function renderMovsForCategory(cat,type){
   const from = $('#filterFrom').value || null;
   const to = $('#filterTo').value || null;
@@ -680,13 +735,62 @@ function renderMovsForCategory(cat,type){
   if(to) list = list.filter(m=> m.fecha <= to);
   list = list.sort((a,b)=> b.fecha.localeCompare(a.fecha));
   const container = $('#movsByCat'); container.innerHTML = '';
-  if(list.length===0){ container.innerHTML = '<div class="small muted">No hay movimientos en este rango</div>'; return; }
+  if(list.length===0){ container.innerHTML = '<div class="small muted">No hay movimientos en este rango</div>'; $('#sumCategoria').innerHTML = ''; return; }
+
+  let totalTypeSum = 0; // sum of the amounts of displayed type
+  let ingTot = 0, gasTot = 0;
   list.forEach(m=>{
     const div = document.createElement('div'); div.className='p-2 border rounded mb-2 flex justify-between items-start';
     div.innerHTML = `<div><div class="font-semibold">${esc(m.concepto || m.categoria)}</div><div class="small text-gray-500">${esc(m.fecha)}</div></div>
       <div class="text-right"><div class="${m.tipo==='ingreso'?'text-emerald-600':'text-rose-600'} font-semibold">${m.tipo==='ingreso'?'+':'-'}${Number(m.importe).toFixed(2)} €</div></div>`;
     container.appendChild(div);
+    totalTypeSum += Number(m.importe||0);
   });
+
+  // compute net (ingresos - gastos) for this category across all movimientos
+  movimientos.forEach(m=>{
+    const c = (m.categoria || 'Otros');
+    if(c === cat){
+      if(m.tipo === 'ingreso') ingTot += Number(m.importe||0);
+      else gasTot += Number(m.importe||0);
+    }
+  });
+  const net = ingTot - gasTot;
+
+  // show sum box with icon according to net (green if net >= 0, red if negative)
+  const sumBox = document.createElement('div'); sumBox.className = 'sum-box card';
+  const icon = document.createElement('div');
+  icon.style.fontSize = '20px';
+  icon.style.fontWeight = '700';
+  icon.style.width = '36px';
+  icon.style.height = '36px';
+  icon.style.display = 'flex';
+  icon.style.alignItems = 'center';
+  icon.style.justifyContent = 'center';
+  icon.style.borderRadius = '8px';
+  icon.style.flexShrink = '0';
+  const txt = document.createElement('div');
+  const formattedTotal = totalTypeSum.toFixed(2) + ' €';
+  txt.innerHTML = `<div class="small muted">Suma movimientos (${type==='ingreso'?'Ingresos':'Gastos'})</div><div class="font-semibold">${formattedTotal}</div>`;
+  // icon for net
+  if(net >= 0){
+    icon.textContent = '✓';
+    icon.style.background = 'rgba(16,185,129,0.12)';
+    icon.style.color = '#059669';
+  } else {
+    icon.textContent = '✗';
+    icon.style.background = 'rgba(239,68,68,0.08)';
+    icon.style.color = '#dc2626';
+  }
+  // also show net value
+  const netEl = document.createElement('div');
+  netEl.innerHTML = `<div class="small muted">Saldo neto categoría</div><div class="font-semibold">${net.toFixed(2)} €</div>`;
+  netEl.style.marginLeft = '16px';
+  sumBox.appendChild(icon);
+  sumBox.appendChild(txt);
+  sumBox.appendChild(netEl);
+  $('#sumCategoria').innerHTML = '';
+  $('#sumCategoria').appendChild(sumBox);
 }
 
 /* Summary table */
@@ -761,7 +865,7 @@ $('#btnOptions').addEventListener('click', ()=> {
 
 /* ---------- Render all ---------- */
 function renderAll(){
-  renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); updateGlobalSaldo(); renderCalendar(currentYear, currentMonth);
+  renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); updateGlobalSaldo(); renderCalendar(currentYear, currentMonth); renderHistorial();
 }
 renderAll();
 
