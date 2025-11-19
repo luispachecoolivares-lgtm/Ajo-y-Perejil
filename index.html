@@ -1,878 +1,468 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Ajo y Perejil</title>
-<meta name="description" content="Ajo y Perejil — gestión de recetas, menús, reservas y contabilidad para una sociedad gastronómica." />
-<meta name="theme-color" content="#ffffff" />
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#ffffff; --muted:#6b7280; --icon:#374151;
-    --soft-0: rgba(59,130,246,0.12);
-    --soft-1: rgba(16,185,129,0.12);
-    --soft-2: rgba(245,158,11,0.12);
-    --soft-3: rgba(239,68,68,0.08);
-    --soft-4: rgba(139,92,246,0.10);
-    --soft-5: rgba(251,113,133,0.10);
-    --soft-6: rgba(6,182,212,0.10);
-    --soft-7: rgba(249,115,22,0.10);
-  }
-  html,body{height:100%}
-  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#0f172a;margin:0;-webkit-font-smoothing:antialiased}
-  .safe-bottom{padding-bottom:calc(env(safe-area-inset-bottom)+14px)}
-  .container{max-width:980px;margin:0 auto;padding:16px;padding-bottom:120px}
-  .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(16,24,40,0.06);padding:14px;margin-bottom:12px}
-  .nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;padding:10px calc(env(safe-area-inset-left)+8px) calc(env(safe-area-inset-bottom)+12px) calc(env(safe-area-inset-right)+8px);background:rgba(255,255,255,0.98);border-top:1px solid rgba(16,24,40,0.04);backdrop-filter:blur(6px)}
-  .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted);background:none;border:0;padding:6px;border-radius:10px}
-  .nav-btn.active{color:var(--icon);font-weight:600}
-  .icon{width:22px;height:22px;display:block}
-  .hidden{display:none}
-  .field{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
-  .btn{padding:10px 12px;border-radius:12px;font-weight:600}
-  .btn-primary{background:#0ea5a4;color:white}
-  .btn-ghost{background:white;border:1px solid #e5e7eb}
-  .small{font-size:13px;color:var(--muted)}
-  /* categories */
-  .cat-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding-top:12px}
-  .cat-card{width:120px;height:90px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;position:relative;transition:transform .25s,opacity .25s}
-  .cat-actions{display:flex;gap:8px;justify-content:center;margin-top:8px}
-  .cat-btn{padding:6px 8px;border-radius:8px;border:0;font-weight:600;color:white}
-  .fade-in{animation:fadeIn .28s ease}
-  .fade-out{animation:fadeOut .28s ease forwards}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  @keyframes fadeOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px) scale(.98)}}
-  /* table */
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid #f1f5f9}
-  thead th{font-weight:700;font-size:13px;color:var(--muted)}
-  tfoot td{font-weight:700}
-  /* calendar */
-  .cal {display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .cal-day{min-height:72px;border-radius:10px;padding:8px;background:linear-gradient(180deg,#ffffff,#fbfbfd);box-shadow:inset 0 0 0 1px rgba(15,23,42,0.02)}
-  .cal-day.other{opacity:.45}
-  .cal-day .date{font-weight:700;margin-bottom:6px}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
-  .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
-  .pill{padding:6px 8px;border-radius:999px;font-weight:600}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999}
-  .modal{background:white;border-radius:12px;padding:16px;max-width:820px;width:92%;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
-  .muted{color:var(--muted)}
-  .sum-box{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px}
-  @media (max-width:520px){ .cat-card{width:100px;height:76px;font-size:13px} .container{padding:12px} .cal-day{min-height:64px} }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>App Turística — Mapa con Geolocalización</title>
+
+  <!-- Tailwind CSS CDN (play-cdn) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2w6kGm1tYQvZf1Q6B6gW9qvQ2n4h2u2q0n0jv6A=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j6tGvJX8m+4n8g3/0l3jA2f6q3q2b3yZl+o6u0I=" crossorigin=""></script>
+
+  <style>
+    /* pequeño ajuste para el mapa */
+    #map { height: 100vh; }
+    /* ajusta tamaño de imagen en popups */
+    .poi-img { max-width: 160px; max-height: 100px; display:block; margin-top:6px; border-radius:6px; }
+    /* para que el panel lateral quede por encima en pantallas pequeñas */
+    .side-panel { z-index: 1000; }
+  </style>
 </head>
-<body class="safe-bottom">
-  <div class="container" id="app">
-    <header class="flex items-center justify-between mb-4">
-      <div>
-        <h1 class="text-lg font-extrabold">Ajo y Perejil</h1>
-        <div class="small">Recetas · Contabilidad · Reservas · Balances</div>
-      </div>
-      <div>
-        <button id="btnOptions" class="btn btn-ghost">Opciones</button>
-      </div>
-    </header>
+<body class="bg-gray-50 text-gray-800">
 
-    <!-- INICIO -->
-    <section id="inicio" class="card">
-      <div class="flex justify-between items-start">
-        <div>
-          <div class="small">Resumen</div>
-          <div class="text-xl font-semibold">Panel</div>
-        </div>
-        <div class="text-right">
-          <div class="small">Saldo</div>
-          <div id="saldoGlobal" class="text-lg font-bold">0,00 €</div>
-        </div>
-      </div>
-      <div class="grid grid-cols-3 gap-3 mt-4">
-        <div class="text-center p-3 rounded-lg bg-white">
-          <div class="small">Recetas</div>
-          <div id="cntRecetas" class="text-lg font-semibold">0</div>
-        </div>
-        <div class="text-center p-3 rounded-lg bg-white">
-          <div class="small">Menús</div>
-          <div id="cntMenus" class="text-lg font-semibold">0</div>
-        </div>
-        <div class="text-center p-3 rounded-lg bg-white">
-          <div class="small">Reservas</div>
-          <div id="cntReservas" class="text-lg font-semibold">0</div>
-        </div>
-      </div>
-    </section>
+  <div class="flex h-screen">
+    <!-- Panel lateral -->
+    <aside class="side-panel w-80 bg-white border-r border-gray-200 p-4 hidden md:block">
+      <h1 class="text-xl font-semibold mb-2">App Turística</h1>
+      <p class="text-sm text-gray-600 mb-3">Explora puntos de interés, añade los tuyos y localízate en el mapa.</p>
 
-    <!-- RECETAS -->
-    <section id="recetas" class="card hidden">
-      <div class="flex items-center justify-between mb-3">
-        <div class="font-semibold">Recetas</div>
-        <div class="small">Guarda y muestra tus recetas</div>
+      <div class="mb-3">
+        <button id="btn-locate" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Ir a mi ubicación</button>
       </div>
-      <div class="grid md:grid-cols-2 gap-4">
-        <form id="formReceta" class="space-y-2">
-          <input id="rNombre" class="field" placeholder="Nombre de la receta" required>
-          <textarea id="rIngredientes" class="field" rows="4" placeholder="Ingredientes (una por línea)"></textarea>
-          <textarea id="rInstrucciones" class="field" rows="5" placeholder="Instrucciones"></textarea>
-          <div class="flex gap-2">
-            <button class="btn btn-primary" type="submit">Guardar receta</button>
-            <button id="limpiarRec" type="button" class="btn btn-ghost">Limpiar</button>
-          </div>
-        </form>
 
-        <div>
-          <div class="small mb-2">Recetas guardadas</div>
-          <div id="listRecetas" class="space-y-2"></div>
+      <div class="mb-3">
+        <input id="search" type="search" placeholder="Buscar POI o descripción..." class="w-full border rounded p-2"/>
+      </div>
 
-          <div id="detalleReceta" class="mt-4 hidden card">
-            <div class="flex justify-between items-start">
-              <div>
-                <div id="dNombre" class="text-lg font-semibold"></div>
-                <div class="small muted" id="dMeta"></div>
-              </div>
-              <div>
-                <button id="editRecBtn" class="btn btn-ghost">Editar</button>
-                <button id="delRecBtn" class="btn btn-ghost">Borrar</button>
-              </div>
-            </div>
-            <hr class="my-2" />
+      <div class="mb-3">
+        <label class="block text-sm text-gray-700 mb-1">Filtrar por categoría</label>
+        <select id="filter-category" class="w-full border rounded p-2">
+          <option value="">Todas</option>
+        </select>
+      </div>
+
+      <div class="mb-3 flex gap-2">
+        <button id="btn-show-add" class="flex-1 bg-green-600 text-white py-2 rounded">Añadir POI</button>
+        <button id="btn-export" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded">Exportar</button>
+      </div>
+
+      <div class="mb-3">
+        <input id="import-file" type="file" accept="application/json" class="text-sm"/>
+      </div>
+
+      <hr class="my-3"/>
+
+      <div id="poi-list" class="overflow-auto" style="max-height:55vh;"></div>
+
+      <p class="mt-3 text-xs text-gray-500">Los POIs se guardan localmente en tu navegador.</p>
+    </aside>
+
+    <!-- Mapa -->
+    <main class="flex-1 relative">
+      <div id="map"></div>
+
+      <!-- Botón panel para móviles -->
+      <div class="md:hidden absolute top-4 left-4 z-50">
+        <button id="toggle-side" class="bg-white border rounded p-2 shadow">Menu</button>
+      </div>
+
+      <!-- Formulario modal añadir POI -->
+      <div id="modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center p-4">
+        <div class="bg-white rounded shadow-lg w-full max-w-lg p-4">
+          <h2 class="text-lg font-semibold mb-2">Añadir punto de interés</h2>
+          <form id="poi-form" class="space-y-2">
             <div>
-              <div class="font-semibold">Ingredientes</div>
-              <pre id="dIngredientes" class="small text-gray-700 whitespace-pre-wrap"></pre>
-              <div class="font-semibold mt-2">Instrucciones</div>
-              <pre id="dInstrucciones" class="small text-gray-700 whitespace-pre-wrap"></pre>
+              <label class="block text-sm">Nombre</label>
+              <input id="poi-name" required class="w-full border rounded p-2"/>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CATEGORÍAS -->
-    <section id="categorias" class="card hidden">
-      <div class="flex items-center justify-between">
-        <div class="font-semibold">Categorías</div>
-        <div class="small">Colores automáticos</div>
-      </div>
-
-      <div class="mt-3 flex gap-2">
-        <input id="newCatName" class="field flex-1" placeholder="Nombre nueva categoría">
-        <button id="addCatBtn" class="btn btn-primary">➕ Añadir</button>
-      </div>
-
-      <div id="catGrid" class="cat-grid mt-3"></div>
-    </section>
-
-    <!-- CONTABILIDAD -->
-    <section id="contabilidad" class="card hidden">
-      <div class="flex items-center justify-between mb-3">
-        <div class="font-semibold">Contabilidad</div>
-        <div class="small">Registra ingresos y gastos</div>
-      </div>
-
-      <form id="formMov" class="space-y-2 mb-4">
-        <input type="hidden" id="movId">
-        <div class="grid grid-cols-3 gap-2">
-          <select id="movTipo" class="field col-span-1">
-            <option value="ingreso">Ingreso</option>
-            <option value="gasto">Gasto</option>
-          </select>
-          <input id="movImporte" type="number" step="0.01" class="field col-span-1" placeholder="Importe (€)" required>
-          <input id="movFecha" type="date" class="field col-span-1" value="">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <select id="movCategoria" class="field"></select>
-          <input id="movConcepto" class="field" placeholder="Concepto">
-        </div>
-        <div class="flex gap-2">
-          <button class="btn btn-primary" type="submit">Registrar</button>
-          <button id="limpiarMov" type="button" class="btn btn-ghost">Limpiar</button>
-        </div>
-      </form>
-
-      <div class="small text-gray-500 mb-2">Últimos movimientos</div>
-      <div id="listaMovimientos" class="space-y-2 mb-4"></div>
-    </section>
-
-    <!-- RESERVAS -->
-    <section id="reservas" class="card hidden">
-      <div class="flex items-center justify-between mb-3">
-        <div class="font-semibold">Reservas</div>
-        <div class="small">Calendario, formulario e historial</div>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <div class="flex items-center justify-between mb-2">
             <div>
-              <button id="calPrev" class="btn btn-ghost">◀</button>
-              <span id="calMonth" class="font-semibold mx-3"></span>
-              <button id="calNext" class="btn btn-ghost">▶</button>
+              <label class="block text-sm">Descripción</label>
+              <textarea id="poi-desc" class="w-full border rounded p-2" rows="2"></textarea>
             </div>
-            <div class="small muted">Mes actual y navegación</div>
-          </div>
-
-          <div class="grid grid-cols-7 gap-2 text-center muted small mb-2">
-            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
-          </div>
-
-          <div id="calendar" class="cal"></div>
-          <div id="listaReservasDia" class="mt-3"></div>
-        </div>
-
-        <div>
-          <form id="formRes" class="space-y-2">
-            <input id="resNombre" class="field" placeholder="Nombre" required>
-            <div class="grid grid-cols-2 gap-2">
-              <input id="resFecha" type="date" class="field" required>
-              <input id="resHora" type="time" class="field" value="20:00">
+            <div>
+              <label class="block text-sm">Categoría</label>
+              <input id="poi-cat" placeholder="ej: Monumento, Museo, Restaurante" class="w-full border rounded p-2"/>
             </div>
-            <input id="resPax" type="number" min="1" class="field" placeholder="Comensales" value="2">
-            <input id="resTipo" class="field" placeholder="Tipo de evento (texto libre)">
-            <input id="resMenu" class="field" placeholder="Menú (texto libre)">
-            <div class="flex gap-2">
-              <button class="btn btn-primary" type="submit">Guardar</button>
-              <button id="limpiarRes" type="button" class="btn btn-ghost">Limpiar</button>
+            <div>
+              <label class="block text-sm">Foto (URL)</label>
+              <input id="poi-img" placeholder="https://..." class="w-full border rounded p-2"/>
+            </div>
+            <div class="text-sm text-gray-600">Puedes hacer click en el mapa para fijar la ubicación; si no, se utilizará la ubicación del centro del mapa.</div>
+            <div class="flex gap-2 justify-end mt-3">
+              <button type="button" id="cancel-modal" class="px-4 py-2 rounded border">Cancelar</button>
+              <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Guardar POI</button>
             </div>
           </form>
-
-          <div class="mt-3 flex items-center gap-2">
-            <button id="toggleHist" class="btn btn-ghost">Ver historial</button>
-            <div class="small muted">Historial de reservas pasadas</div>
-          </div>
-
-          <div id="historialReservas" class="mt-3 hidden"></div>
-
-          <div class="small text-gray-500 mt-3">Próximas reservas</div>
-          <div id="listaReservas" class="mt-2 small"></div>
         </div>
       </div>
-    </section>
-
-    <!-- BALANCES -->
-    <section id="balances" class="card hidden">
-      <div class="flex items-center justify-between mb-3">
-        <div class="font-semibold">Balances</div>
-        <div class="small">Selecciona categoría para ver movimientos</div>
-      </div>
-
-      <!-- Ingresos -->
-      <div class="mb-3">
-        <div class="font-semibold small mb-2">INGRESOS</div>
-        <div id="ingresosBtns" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <!-- Gastos -->
-      <div class="mb-3">
-        <div class="font-semibold small mb-2">GASTOS</div>
-        <div id="gastosBtns" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <!-- Selected category area (appears when a category clicked) -->
-      <div id="catDetails" class="hidden card">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <div id="catTitle" class="text-lg font-semibold"></div>
-            <div id="catType" class="small muted"></div>
-          </div>
-          <div>
-            <button id="clearCat" class="btn btn-ghost">Cerrar</button>
-          </div>
-        </div>
-
-        <!-- Date filters (only visible here) -->
-        <div class="flex gap-2 items-center mb-3">
-          <div class="small muted">Filtrar periodo:</div>
-          <input id="filterFrom" type="date" class="field w-auto">
-          <input id="filterTo" type="date" class="field w-auto">
-          <button id="applyFilter" class="btn btn-primary">Aplicar</button>
-        </div>
-
-        <!-- Movements list for the selected category -->
-        <div id="movsByCat" class="space-y-2 mb-3"></div>
-
-        <!-- Sumatorio y estado (icono) -->
-        <div id="sumCategoria" class="mt-2"></div>
-      </div>
-
-      <!-- Summary table -->
-      <div class="font-semibold mb-2">Balances por categoría</div>
-      <div class="overflow-x-auto">
-        <table id="tablaBalances" class="w-full">
-          <thead><tr><th>Categoría</th><th>Ingresos (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr><td>Total</td><td id="sumIngresos">0,00</td><td id="sumGastos">0,00</td><td id="sumSaldo">0,00</td></tr></tfoot>
-        </table>
-      </div>
-    </section>
-
+    </main>
   </div>
 
-  <!-- Bottom nav -->
-  <nav class="nav" role="navigation" aria-label="Navegación principal">
-    <button class="nav-btn active" data-target="inicio" title="Inicio">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 12l9-9 9 9" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21V9h6v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="small">Inicio</span>
-    </button>
-    <button class="nav-btn" data-target="recetas" title="Recetas">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 7h18M7 3v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="small">Recetas</span>
-    </button>
-    <button class="nav-btn" data-target="categorias" title="Categorías">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="small">Categorías</span>
-    </button>
-    <button class="nav-btn" data-target="contabilidad" title="Contabilidad">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M12 8v8"/><path d="M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-      <span class="small">Cuenta</span>
-    </button>
-    <button class="nav-btn" data-target="reservas" title="Reservas">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4"/></svg>
-      <span class="small">Reservas</span>
-    </button>
-    <button class="nav-btn" data-target="balances" title="Balances">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#374151"><path d="M3 3v18h18"/><path d="M7 13l3-6 3 12 3-8"/></svg>
-      <span class="small">Balances</span>
-    </button>
-  </nav>
-
-<!-- Modal placeholder -->
-<div id="modalRoot"></div>
-
 <script>
-document.addEventListener('DOMContentLoaded', ()=>{
+/* ---- App JS ---- */
 
-/* Keys */
-const K_REC = 'ajop_recetas_v6';
-const K_CAT = 'ajop_cats_v6';
-const K_MOV = 'ajop_mov_v6';
-const K_RES = 'ajop_res_v6';
-
-/* Palette and soft backgrounds */
-const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#fb7185','#06b6d4','#f97316'];
-const soft = ['var(--soft-0)','var(--soft-1)','var(--soft-2)','var(--soft-3)','var(--soft-4)','var(--soft-5)','var(--soft-6)','var(--soft-7)'];
-
-/* Helpers */
-const $ = (s,root=document) => root.querySelector(s);
-const $all = (s,root=document) => Array.from(root.querySelectorAll(s));
-const esc = s => (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-
-/* Load storage */
-let recetas = JSON.parse(localStorage.getItem(K_REC) || '[]');
-let categories = JSON.parse(localStorage.getItem(K_CAT) || '["Cuotas","Eventos","Compras","Otros"]');
-let movimientos = JSON.parse(localStorage.getItem(K_MOV) || '[]');
-let reservas = JSON.parse(localStorage.getItem(K_RES) || '[]');
-
-function saveAll(){ localStorage.setItem(K_REC, JSON.stringify(recetas)); localStorage.setItem(K_CAT, JSON.stringify(categories)); localStorage.setItem(K_MOV, JSON.stringify(movimientos)); localStorage.setItem(K_RES, JSON.stringify(reservas)); }
-
-/* Navigation */
-$all('.nav-btn').forEach(btn=> btn.addEventListener('click', ()=>{
-  $all('.nav-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); showSection(btn.dataset.target);
-}));
-function showSection(id){
-  $all('section').forEach(s=> s.classList.add('hidden'));
-  const el = $('#'+id); if(el) el.classList.remove('hidden');
-  if(id==='inicio') renderInicio();
-  if(id==='recetas') renderRecetas();
-  if(id==='categorias') renderCategorias();
-  if(id==='contabilidad') renderMovimientos();
-  if(id==='reservas') renderReservas();
-  if(id==='balances') renderBalances();
-  window.scrollTo({top:0,behavior:'smooth'});
+// Utils: calcular distancia entre dos coordenadas (haversine), en km
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const toRad = v => v * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+            Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2)*Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }
 
-/* Inicio */
-function renderInicio(){
-  $('#cntRecetas').textContent = recetas.length;
-  $('#cntMenus').textContent = 0;
-  $('#cntReservas').textContent = reservas.length;
-  updateGlobalSaldo();
+// Estado inicial
+let state = {
+  pois: [], // {id, name, desc, cat, img, lat, lng}
+  userPos: null,
+  mapClickLatLng: null
+};
+
+// DOM references
+const poiListEl = document.getElementById('poi-list');
+const btnLocate = document.getElementById('btn-locate');
+const btnShowAdd = document.getElementById('btn-show-add');
+const modal = document.getElementById('modal');
+const poiForm = document.getElementById('poi-form');
+const btnCancelModal = document.getElementById('cancel-modal');
+const searchInput = document.getElementById('search');
+const filterCategory = document.getElementById('filter-category');
+const btnExport = document.getElementById('btn-export');
+const importFile = document.getElementById('import-file');
+const toggleSide = document.getElementById('toggle-side');
+const sidePanel = document.querySelector('aside.side-panel');
+
+// Map setup
+const map = L.map('map', { center: [40.0708, -2.1374], zoom: 13 }); // centro por defecto (Cuenca, ejemplo)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+const markersLayer = L.layerGroup().addTo(map);
+
+// sample POIs (si no hay datos en localStorage)
+const samplePOIs = [
+  {
+    id: cryptoRandomId(),
+    name: "Catedral de Cuenca",
+    desc: "Catedral gótica con torres espectaculares.",
+    cat: "Monumento",
+    img: "https://upload.wikimedia.org/wikipedia/commons/7/74/Catedral_de_Cuenca%2C_Espa%C3%B1a.jpg",
+    lat: 40.0786, lng: -2.1301
+  },
+  {
+    id: cryptoRandomId(),
+    name: "Casas Colgadas",
+    desc: "Famosas casas colgantes sobre el valle del río Huécar.",
+    cat: "Monumento",
+    img: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Casas_Colgadas_Cuenca.jpg",
+    lat: 40.0779, lng: -2.1308
+  },
+  {
+    id: cryptoRandomId(),
+    name: "Museo de Arte Abstracto",
+    desc: "Colección de arte moderno y abstracto.",
+    cat: "Museo",
+    img: "",
+    lat: 40.0792, lng: -2.1315
+  }
+];
+
+// Helpers
+function cryptoRandomId() {
+  return Math.random().toString(36).slice(2,9);
 }
 
-/* ---------- RECETAS ---------- */
-$('#formReceta').addEventListener('submit', e=>{
-  e.preventDefault();
-  const nombre = $('#rNombre').value.trim();
-  const ing = $('#rIngredientes').value.trim();
-  const ins = $('#rInstrucciones').value.trim();
-  if(!nombre) return alert('Nombre requerido');
-  const newRec = { id: uid(), nombre, ingredientes: ing, instrucciones: ins, created: new Date().toISOString() };
-  recetas.unshift(newRec);
-  saveAll();
-  $('#formReceta').reset();
-  renderRecetas();
-  renderInicio();
-});
-$('#limpiarRec').addEventListener('click', ()=> $('#formReceta').reset());
+function saveState() {
+  localStorage.setItem('tour_pois_v1', JSON.stringify(state.pois));
+}
 
-function renderRecetas(){
-  const list = $('#listRecetas'); list.innerHTML = '';
-  if(recetas.length===0){ list.innerHTML = '<div class="small muted">No hay recetas</div>'; return; }
-  recetas.forEach(r=>{
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-ghost w-full text-left';
-    btn.style.justifyContent = 'space-between';
-    btn.innerHTML = `<span>${esc(r.nombre)}</span><span class="small muted">${new Date(r.created).toLocaleDateString()}</span>`;
-    btn.addEventListener('click', ()=> showDetalleReceta(r.id));
-    list.appendChild(btn);
+function loadState() {
+  const raw = localStorage.getItem('tour_pois_v1');
+  if (raw) {
+    try {
+      state.pois = JSON.parse(raw);
+      return;
+    } catch(e) {
+      console.warn('Error parsing POIs', e);
+    }
+  }
+  // si no hay nada, cargar muestra
+  state.pois = samplePOIs;
+  saveState();
+}
+
+function populateCategoryFilter() {
+  const cats = [...new Set(state.pois.map(p => p.cat).filter(Boolean))].sort();
+  filterCategory.innerHTML = '<option value="">Todas</option>';
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    filterCategory.appendChild(opt);
   });
 }
 
-function showDetalleReceta(id){
-  const r = recetas.find(x=>x.id===id); if(!r) return;
-  $('#detalleReceta').classList.remove('hidden');
-  $('#dNombre').textContent = r.nombre;
-  $('#dMeta').textContent = `Creada: ${new Date(r.created).toLocaleString()}`;
-  $('#dIngredientes').textContent = r.ingredientes || '(sin ingredientes)';
-  $('#dInstrucciones').textContent = r.instrucciones || '(sin instrucciones)';
-  $('#editRecBtn').onclick = ()=> openEditReceta(r.id);
-  $('#delRecBtn').onclick = ()=> {
-    recetas = recetas.filter(x=>x.id!==r.id);
-    saveAll(); renderRecetas(); $('#detalleReceta').classList.add('hidden'); renderInicio();
-  };
+function renderMarkers() {
+  markersLayer.clearLayers();
+  state.pois.forEach(p => {
+    const marker = L.marker([p.lat, p.lng]).addTo(markersLayer);
+    const imgHtml = p.img ? `<img src="${p.img}" alt="${escapeHtml(p.name)}" class="poi-img">` : '';
+    const distText = state.userPos ? `<div><strong>Distancia:</strong> ${distanceKm(state.userPos.lat, state.userPos.lng, p.lat, p.lng).toFixed(2)} km</div>` : '';
+    const popupHtml = `
+      <div style="min-width:180px">
+        <strong>${escapeHtml(p.name)}</strong>
+        <div style="font-size:0.9em; margin-top:4px;">${escapeHtml(p.desc || '')}</div>
+        <div style="font-size:0.85em; margin-top:6px;"><em>${escapeHtml(p.cat || '')}</em></div>
+        ${imgHtml}
+        ${distText}
+        <div style="margin-top:6px;">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank">Ir (Google Maps)</a>
+        </div>
+      </div>
+    `;
+    marker.bindPopup(popupHtml);
+    marker.on('click', () => {
+      // center when clicked in list maybe
+    });
+  });
 }
 
-function openEditReceta(id){
-  const r = recetas.find(x=>x.id===id); if(!r) return;
-  $('#rNombre').value = r.nombre;
-  $('#rIngredientes').value = r.ingredientes;
-  $('#rInstrucciones').value = r.instrucciones;
-  const form = $('#formReceta');
-  form.dataset.editing = r.id;
-  const saveBtn = form.querySelector('button[type="submit"]');
-  const prevText = saveBtn.textContent;
-  saveBtn.textContent = 'Guardar cambios';
-  const onSubmit = (e)=>{
-    e.preventDefault();
-    const nombre = $('#rNombre').value.trim();
-    if(!nombre){ alert('Nombre requerido'); return; }
-    r.nombre = nombre;
-    r.ingredientes = $('#rIngredientes').value.trim();
-    r.instrucciones = $('#rInstrucciones').value.trim();
-    saveAll();
-    renderRecetas(); renderInicio();
-    form.reset();
-    delete form.dataset.editing;
-    saveBtn.textContent = prevText;
-    form.removeEventListener('submit', onSubmit);
-  };
-  form.addEventListener('submit', onSubmit);
-}
+function renderList() {
+  const q = searchInput.value.trim().toLowerCase();
+  const catFilter = filterCategory.value;
+  poiListEl.innerHTML = '';
 
-/* ---------- CATEGORÍAS ---------- */
-function colorForIndex(i){ return palette[i % palette.length]; }
-function softForIndex(i){ return soft[i % soft.length]; }
+  const filtered = state.pois.filter(p => {
+    const matchesQ = q === '' || (p.name && p.name.toLowerCase().includes(q)) || (p.desc && p.desc.toLowerCase().includes(q)) || (p.cat && p.cat.toLowerCase().includes(q));
+    const matchesCat = !catFilter || p.cat === catFilter;
+    return matchesQ && matchesCat;
+  });
 
-function renderCategorias(){
-  const grid = $('#catGrid'); grid.innerHTML = '';
-  categories.forEach((c, idx)=>{
-    const color = colorForIndex(idx);
-    const card = document.createElement('div'); card.className='cat-card fade-in'; card.style.background = color; card.dataset.idx = idx;
-    card.innerHTML = `<div style="text-align:center;pointer-events:none"><div style="font-size:15px">${esc(c)}</div></div>`;
-    const actions = document.createElement('div'); actions.className='cat-actions';
-    const editBtn = document.createElement('button'); editBtn.className='cat-btn'; editBtn.style.background='rgba(255,255,255,0.95)'; editBtn.style.color=color; editBtn.textContent='✏️';
-    const delBtn = document.createElement('button'); delBtn.className='cat-btn'; delBtn.style.background='rgba(0,0,0,0.06)'; delBtn.style.color='#111'; delBtn.textContent='🗑️';
-    actions.appendChild(editBtn); actions.appendChild(delBtn);
-    const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.flexDirection='column'; wrapper.style.alignItems='center'; wrapper.style.maxWidth='140px';
-    wrapper.appendChild(card); wrapper.appendChild(actions);
-    editBtn.addEventListener('click', ()=> {
-      card.style.display='none'; actions.style.display='none';
-      const box = document.createElement('div'); box.style.display='flex'; box.style.flexDirection='column'; box.style.alignItems='center'; box.style.width='120px';
-      const input = document.createElement('input'); input.className='field'; input.style.width='100%'; input.value = c;
-      const btns = document.createElement('div'); btns.style.display='flex'; btns.style.gap='8px'; btns.style.marginTop='8px';
-      const save = document.createElement('button'); save.className='btn btn-primary'; save.textContent='Guardar';
-      const cancel = document.createElement('button'); cancel.className='btn btn-ghost'; cancel.textContent='Cancelar';
-      btns.appendChild(save); btns.appendChild(cancel); box.appendChild(input); box.appendChild(btns); wrapper.appendChild(box);
-      input.focus();
-      save.addEventListener('click', ()=>{
-        const nv = input.value.trim(); if(!nv) return alert('Nombre inválido'); if(categories.includes(nv) && nv!==c) return alert('La categoría ya existe');
-        categories[idx] = nv; saveAll(); renderCategorias(); renderMovimientos(); renderBalances();
+  if (filtered.length === 0) {
+    poiListEl.innerHTML = '<p class="text-sm text-gray-500">No hay puntos que coincidan.</p>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'p-2 border-b hover:bg-gray-50 cursor-pointer';
+    const dist = state.userPos ? `${distanceKm(state.userPos.lat, state.userPos.lng, p.lat, p.lng).toFixed(2)} km` : '-';
+    item.innerHTML = `
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="font-semibold">${escapeHtml(p.name)}</div>
+          <div class="text-xs text-gray-600">${escapeHtml(p.cat || '')}</div>
+          <div class="text-xs text-gray-500 mt-1">${escapeHtml(p.desc || '')}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-gray-500">${dist}</div>
+          <div class="mt-2 flex gap-1">
+            <button class="text-xs px-2 py-1 bg-blue-600 text-white rounded btn-center">Ver</button>
+            <button class="text-xs px-2 py-1 bg-red-500 text-white rounded btn-delete">Borrar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    // click handlers
+    const btnCenter = item.querySelector('.btn-center');
+    btnCenter.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      map.setView([p.lat, p.lng], 17, { animate: true });
+      // open popup
+      markersLayer.eachLayer(m => {
+        if (m.getLatLng && Math.abs(m.getLatLng().lat - p.lat) < 1e-6 && Math.abs(m.getLatLng().lng - p.lng) < 1e-6) {
+          m.openPopup();
+        }
       });
-      cancel.addEventListener('click', ()=> { box.remove(); card.style.display=''; actions.style.display=''; });
     });
-    delBtn.addEventListener('click', ()=>{
-      wrapper.classList.add('fade-out');
-      setTimeout(()=> {
-        const rem = categories.splice(idx,1)[0];
-        movimientos.forEach(m => { if(m.categoria===rem) m.categoria='Otros'; });
-        if(!categories.includes('Otros')) categories.push('Otros');
-        saveAll(); renderCategorias(); renderMovimientos(); renderBalances(); updateGlobalSaldo();
-      },260);
-    });
-    grid.appendChild(wrapper);
-  });
-  const sel = $('#movCategoria'); if(sel){ sel.innerHTML = '<option value="">-- Selecciona --</option>'; categories.forEach(c=> sel.insertAdjacentHTML('beforeend', `<option value="${esc(c)}">${esc(c)}</option>`)); }
-}
-$('#addCatBtn').addEventListener('click', ()=>{
-  const name = $('#newCatName').value.trim(); if(!name) return alert('Escribe un nombre'); if(categories.includes(name)) return alert('La categoría ya existe');
-  categories.push(name); $('#newCatName').value=''; saveAll(); renderCategorias(); renderBalances();
-});
-
-/* ---------- MOVIMIENTOS ---------- */
-$('#formMov').addEventListener('submit', e=>{
-  e.preventDefault();
-  const id = $('#movId').value || uid();
-  const tipo = $('#movTipo').value;
-  const importe = Number($('#movImporte').value || 0);
-  const fecha = $('#movFecha').value || new Date().toISOString().slice(0,10);
-  const categoria = $('#movCategoria').value || 'Otros';
-  const concepto = $('#movConcepto').value.trim() || '';
-  const ex = movimientos.find(m=>m.id===id);
-  if(ex){ Object.assign(ex,{tipo,importe,fecha,categoria,concepto}); }
-  else movimientos.unshift({id,tipo,importe,fecha,categoria,concepto,created:new Date().toISOString()});
-  saveAll();
-  $('#formMov').reset(); $('#movId').value=''; renderMovimientos(); renderBalances(); updateGlobalSaldo();
-});
-$('#limpiarMov').addEventListener('click', ()=> { $('#formMov').reset(); $('#movId').value=''; });
-
-function renderMovimientos(){
-  const lista = $('#listaMovimientos');
-  if(movimientos.length===0){ lista.innerHTML = '<div class="small muted">Sin movimientos</div>'; return; }
-  lista.innerHTML = movimientos.slice(0,50).map(m=>`
-    <div class="p-2 border rounded mb-2 flex justify-between items-start">
-      <div><div class="font-semibold">${esc(m.concepto || m.categoria)}</div><div class="small text-gray-500">${esc(m.fecha)} • ${esc(m.categoria)}</div></div>
-      <div class="text-right"><div class="${m.tipo==='ingreso'?'text-emerald-600':'text-rose-600'} font-semibold">${m.tipo==='ingreso'?'+':'-'}${Number(m.importe).toFixed(2)} €</div>
-        <div class="flex gap-2 mt-2"><button data-id="${m.id}" class="edit-mov btn btn-ghost">Editar</button><button data-id="${m.id}" class="del-mov btn btn-ghost">Borrar</button></div></div>
-    </div>`).join('');
-  $all('.edit-mov').forEach(b=> b.addEventListener('click', e=>{
-    const id = e.currentTarget.dataset.id; const mv = movimientos.find(x=>x.id===id); if(!mv) return;
-    $('#movId').value = mv.id; $('#movTipo').value = mv.tipo; $('#movImporte').value = mv.importe; $('#movFecha').value = mv.fecha; $('#movCategoria').value = mv.categoria; $('#movConcepto').value = mv.concepto; showSection('contabilidad');
-  }));
-  $all('.del-mov').forEach(b=> b.addEventListener('click', e=>{
-    const id = e.currentTarget.dataset.id; movimientos = movimientos.filter(m=> m.id !== id); saveAll(); renderMovimientos(); renderBalances(); updateGlobalSaldo();
-  }));
-}
-
-/* ---------- RESERVAS & CALENDAR & HISTORIAL ---------- */
-$('#formRes').addEventListener('submit', e=>{
-  e.preventDefault();
-  const nombre = $('#resNombre').value.trim(); const fecha = $('#resFecha').value; const hora = $('#resHora').value; const pax = Number($('#resPax').value||1);
-  const tipo = $('#resTipo').value.trim(); const menu = $('#resMenu').value.trim();
-  if(!nombre || !fecha) return alert('Nombre y fecha requeridos');
-  reservas.unshift({id: uid(), nombre, fecha, hora, pax, tipo, menu, created: new Date().toISOString()});
-  saveAll(); $('#formRes').reset(); renderReservas(); renderInicio(); renderCalendar(currentYear, currentMonth); renderHistorial();
-});
-$('#limpiarRes').addEventListener('click', ()=> $('#formRes').reset());
-
-function renderReservas(){
-  $('#listaReservas').innerHTML = reservas.slice().sort((a,b)=> a.fecha.localeCompare(b.fecha)).slice(0,10).map(r=>`<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.fecha)} ${esc(r.hora||'')} • ${esc(r.pax)} pax</div></div>`).join('') || '<div class="small muted">No hay reservas</div>';
-  $('#cntReservas').textContent = reservas.length;
-}
-
-/* Historial toggling and rendering (past reservations) */
-$('#toggleHist').addEventListener('click', ()=> {
-  const el = $('#historialReservas');
-  if(el.classList.contains('hidden')){ el.classList.remove('hidden'); $('#toggleHist').textContent = 'Ocultar historial'; renderHistorial(); }
-  else { el.classList.add('hidden'); $('#toggleHist').textContent = 'Ver historial'; }
-});
-function renderHistorial(){
-  const today = new Date().toISOString().slice(0,10);
-  const past = reservas.filter(r=> r.fecha < today).sort((a,b)=> b.fecha.localeCompare(a.fecha));
-  const el = $('#historialReservas'); el.innerHTML = '';
-  if(past.length===0){ el.innerHTML = '<div class="small muted">No hay reservas pasadas</div>'; return; }
-  past.forEach(r=>{
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-ghost w-full text-left';
-    btn.style.justifyContent = 'space-between';
-    btn.innerHTML = `<span>${esc(r.nombre)} — ${esc(r.fecha)} ${esc(r.hora||'')}</span><span class="small muted">${esc(r.tipo||'')}</span>`;
-    btn.addEventListener('click', ()=> showReservaDetalle(r.id));
-    el.appendChild(btn);
-  });
-}
-
-/* Show reservation details in modal */
-function showReservaDetalle(id){
-  const r = reservas.find(x=> x.id === id); if(!r) return;
-  const root = $('#modalRoot'); root.innerHTML = '';
-  const overlay = document.createElement('div'); overlay.className='modal-overlay';
-  const modal = document.createElement('div'); modal.className='modal';
-  modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Reserva: ${esc(r.nombre)}</div>
-    <div class="small muted">Creada: ${new Date(r.created).toLocaleString()}</div>
-    <div style="margin-top:8px">
-      <div><strong>Fecha:</strong> ${esc(r.fecha)} ${esc(r.hora||'')}</div>
-      <div><strong>Comensales:</strong> ${esc(String(r.pax || ''))}</div>
-      <div><strong>Tipo de evento:</strong> ${esc(r.tipo || '')}</div>
-      <div><strong>Menú:</strong> <pre style="white-space:pre-wrap;margin:6px 0">${esc(r.menu || '')}</pre></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:12px"><button id="closeRes" class="btn btn-ghost">Cerrar</button><button id="delRes" class="btn btn-ghost">Borrar</button></div>`;
-  overlay.appendChild(modal); root.appendChild(overlay);
-  $('#closeRes', modal).onclick = ()=> root.innerHTML = '';
-  $('#delRes', modal).onclick = ()=> {
-    reservas = reservas.filter(x=> x.id !== id); saveAll(); renderReservas(); renderHistorial(); root.innerHTML = '';
-  };
-}
-
-/* Calendar */
-let now = new Date();
-let currentYear = now.getFullYear();
-let currentMonth = now.getMonth();
-function renderCalendar(year, month){
-  currentYear = year; currentMonth = month;
-  const cal = $('#calendar'); cal.innerHTML = '';
-  const first = new Date(year, month, 1);
-  const startDay = first.getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const prevDays = startDay;
-  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  $('#calMonth').textContent = `${monthNames[month]} ${year}`;
-  const totalCells = Math.ceil((prevDays + daysInMonth)/7)*7;
-  for(let i=0;i<totalCells;i++){
-    const cell = document.createElement('div'); cell.className='cal-day';
-    const dayIndex = i - prevDays + 1;
-    if(dayIndex < 1 || dayIndex > daysInMonth){
-      cell.classList.add('other'); cell.innerHTML = `<div class="date muted">&nbsp;</div>`;
-    } else {
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(dayIndex).padStart(2,'0')}`;
-      const dayRes = reservas.filter(r=> r.fecha === dateStr);
-      cell.innerHTML = `<div class="date">${dayIndex}</div>`;
-      if(dayRes.length){
-        const dots = document.createElement('div');
-        dayRes.slice(0,3).forEach((d,ii)=> {
-          const el = document.createElement('span'); el.className='dot'; el.style.marginRight='6px';
-          el.style.background = palette[ii % palette.length];
-          dots.appendChild(el);
-        });
-        const more = dayRes.length>3 ? `<div class="small muted">${dayRes.length} reservas</div>` : '';
-        cell.appendChild(dots);
-        if(more) cell.insertAdjacentHTML('beforeend', more);
+    const btnDelete = item.querySelector('.btn-delete');
+    btnDelete.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (confirm(`¿Borrar "${p.name}"?`)) {
+        state.pois = state.pois.filter(x => x.id !== p.id);
+        saveState();
+        populateCategoryFilter();
+        renderMarkers();
+        renderList();
       }
-      cell.addEventListener('click', ()=> {
-        showReservasDia(dateStr);
+    });
+
+    poiListEl.appendChild(item);
+  });
+}
+
+function escapeHtml(str='') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Eventos UI
+btnLocate.addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Geolocalización no soportada por tu navegador.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    state.userPos = { lat, lng };
+    // marque / centre
+    if (!state._userMarker) {
+      state._userMarker = L.circleMarker([lat,lng], { radius:8, color:'#0ea5e9' }).addTo(map);
+    } else {
+      state._userMarker.setLatLng([lat,lng]);
+    }
+    map.setView([lat,lng], 15, { animate: true });
+    renderMarkers();
+    renderList();
+  }, err => {
+    alert('No se pudo obtener la posición: ' + (err.message || err.code));
+  }, { enableHighAccuracy: true });
+});
+
+btnShowAdd.addEventListener('click', () => {
+  openModal();
+});
+
+// abrir / cerrar modal
+function openModal() {
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+function closeModal() {
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+  poiForm.reset();
+  state.mapClickLatLng = null;
+}
+
+btnCancelModal.addEventListener('click', closeModal);
+
+poiForm.addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const name = document.getElementById('poi-name').value.trim();
+  const desc = document.getElementById('poi-desc').value.trim();
+  const cat = document.getElementById('poi-cat').value.trim();
+  const img = document.getElementById('poi-img').value.trim();
+
+  let latlng = state.mapClickLatLng;
+  if (!latlng) {
+    // coger centro del mapa
+    latlng = map.getCenter();
+  }
+  const poi = {
+    id: cryptoRandomId(),
+    name, desc, cat, img,
+    lat: parseFloat(latlng.lat),
+    lng: parseFloat(latlng.lng)
+  };
+  state.pois.push(poi);
+  saveState();
+  populateCategoryFilter();
+  renderMarkers();
+  renderList();
+  closeModal();
+});
+
+// click en el mapa para fijar coordenadas al añadir
+map.on('click', (e) => {
+  // si el modal está abierto, fijamos
+  if (!modal.classList.contains('hidden')) {
+    state.mapClickLatLng = e.latlng;
+    alert('Ubicación fijada en el mapa para el nuevo POI.');
+  }
+});
+
+// busqueda y filtro
+searchInput.addEventListener('input', () => renderList());
+filterCategory.addEventListener('change', () => renderList());
+
+// export/import
+btnExport.addEventListener('click', () => {
+  const dataStr = JSON.stringify(state.pois, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pois_export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+importFile.addEventListener('change', (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error('Formato incorrecto (se esperaba un array de POIs).');
+      // agregar con ids si faltan
+      imported.forEach(p => {
+        if (!p.id) p.id = cryptoRandomId();
+        // validar lat/lng mínimos
+        p.lat = parseFloat(p.lat);
+        p.lng = parseFloat(p.lng);
       });
+      // confirm
+      if (confirm(`Importar ${imported.length} POIs y añadirlos a los existentes?`)) {
+        state.pois = state.pois.concat(imported);
+        saveState();
+        populateCategoryFilter();
+        renderMarkers();
+        renderList();
+      }
+    } catch(err) {
+      alert('Error importando: ' + err.message);
     }
-    cal.appendChild(cell);
-  }
-}
-
-function showReservasDia(dateStr){
-  const list = reservas.filter(r=> r.fecha === dateStr).sort((a,b)=> a.hora.localeCompare(b.hora));
-  const container = $('#listaReservasDia'); container.innerHTML = `<div class="font-semibold">Reservas ${dateStr}</div>`;
-  if(list.length===0){ container.insertAdjacentHTML('beforeend','<div class="small muted">No hay reservas para este día</div>'); return; }
-  list.forEach(r=>{
-    container.insertAdjacentHTML('beforeend', `<div class="p-2 border rounded mb-2"><div class="font-semibold">${esc(r.nombre)}</div><div class="small text-gray-500">${esc(r.hora||'')} • ${esc(r.pax)} pax • ${esc(r.tipo||'')} </div><div class="small">Menú: ${esc(r.menu||'')}</div></div>`);
-  });
-}
-$('#calPrev').addEventListener('click', ()=> { const m = currentMonth-1; const y = m<0 ? currentYear-1 : currentYear; const mm = (m+12)%12; renderCalendar(y, mm); });
-$('#calNext').addEventListener('click', ()=> { const m = currentMonth+1; const y = m>11 ? currentYear+1 : currentYear; const mm = m%12; renderCalendar(y, mm); });
-
-/* ---------- BALANCES (nuevo comportamiento, con sumatorio e icono) ---------- */
-function renderBalances(){
-  // build buttons for ingresos/gastos (only categories that actually have movements)
-  const ingresosSet = new Set();
-  const gastosSet = new Set();
-  movimientos.forEach(m=>{
-    if(m.tipo === 'ingreso') ingresosSet.add(m.categoria || 'Otros');
-    if(m.tipo === 'gasto') gastosSet.add(m.categoria || 'Otros');
-  });
-
-  const ingresos = categories.filter(c=> ingresosSet.has(c));
-  const gastos = categories.filter(c=> gastosSet.has(c));
-
-  const ingContainer = $('#ingresosBtns'); ingContainer.innerHTML = '';
-  const gasContainer = $('#gastosBtns'); gasContainer.innerHTML = '';
-
-  ingresos.forEach((cat,idx)=>{
-    const btn = document.createElement('button');
-    btn.className = 'pill';
-    btn.style.background = softForIndex(categories.indexOf(cat));
-    btn.style.border = '1px solid rgba(0,0,0,0.06)';
-    btn.style.color = 'var(--icon)';
-    btn.textContent = `${cat} (+)`;
-    btn.dataset.cat = cat; btn.dataset.type = 'ingreso';
-    btn.addEventListener('click', ()=> selectCategory(cat,'ingreso'));
-    ingContainer.appendChild(btn);
-  });
-
-  gastos.forEach((cat,idx)=>{
-    const btn = document.createElement('button');
-    btn.className = 'pill';
-    btn.style.background = softForIndex(categories.indexOf(cat));
-    btn.style.border = '1px solid rgba(0,0,0,0.06)';
-    btn.style.color = 'var(--icon)';
-    btn.textContent = `${cat} (-)`;
-    btn.dataset.cat = cat; btn.dataset.type = 'gasto';
-    btn.addEventListener('click', ()=> selectCategory(cat,'gasto'));
-    gasContainer.appendChild(btn);
-  });
-
-  // update summary table below
-  updateSummaryTable();
-}
-
-/* When category selected */
-function selectCategory(cat, type){
-  $('#catDetails').classList.remove('hidden');
-  $('#catTitle').textContent = cat;
-  $('#catType').textContent = (type==='ingreso') ? 'Movimientos de ingreso' : 'Movimientos de gasto';
-  $('#filterFrom').value = ''; $('#filterTo').value = '';
-  $('#catDetails').dataset.selectedCat = cat;
-  $('#catDetails').dataset.selectedType = type;
-  renderMovsForCategory(cat,type);
-}
-
-/* Apply filter */
-$('#applyFilter').addEventListener('click', ()=> {
-  const cat = $('#catDetails').dataset.selectedCat;
-  const type = $('#catDetails').dataset.selectedType;
-  if(!cat) return;
-  renderMovsForCategory(cat,type);
+  };
+  reader.readAsText(f);
 });
 
-$('#clearCat').addEventListener('click', ()=> {
-  $('#catDetails').classList.add('hidden');
-  delete $('#catDetails').dataset.selectedCat;
-  delete $('#catDetails').dataset.selectedType;
-});
-
-/* Render movements for category and show sum + icon */
-function renderMovsForCategory(cat,type){
-  const from = $('#filterFrom').value || null;
-  const to = $('#filterTo').value || null;
-  let list = movimientos.filter(m=> (m.categoria || 'Otros') === cat && m.tipo === type);
-  if(from) list = list.filter(m=> m.fecha >= from);
-  if(to) list = list.filter(m=> m.fecha <= to);
-  list = list.sort((a,b)=> b.fecha.localeCompare(a.fecha));
-  const container = $('#movsByCat'); container.innerHTML = '';
-  if(list.length===0){ container.innerHTML = '<div class="small muted">No hay movimientos en este rango</div>'; $('#sumCategoria').innerHTML = ''; return; }
-
-  let totalTypeSum = 0; // sum of the amounts of displayed type
-  let ingTot = 0, gasTot = 0;
-  list.forEach(m=>{
-    const div = document.createElement('div'); div.className='p-2 border rounded mb-2 flex justify-between items-start';
-    div.innerHTML = `<div><div class="font-semibold">${esc(m.concepto || m.categoria)}</div><div class="small text-gray-500">${esc(m.fecha)}</div></div>
-      <div class="text-right"><div class="${m.tipo==='ingreso'?'text-emerald-600':'text-rose-600'} font-semibold">${m.tipo==='ingreso'?'+':'-'}${Number(m.importe).toFixed(2)} €</div></div>`;
-    container.appendChild(div);
-    totalTypeSum += Number(m.importe||0);
-  });
-
-  // compute net (ingresos - gastos) for this category across all movimientos
-  movimientos.forEach(m=>{
-    const c = (m.categoria || 'Otros');
-    if(c === cat){
-      if(m.tipo === 'ingreso') ingTot += Number(m.importe||0);
-      else gasTot += Number(m.importe||0);
-    }
-  });
-  const net = ingTot - gasTot;
-
-  // show sum box with icon according to net (green if net >= 0, red if negative)
-  const sumBox = document.createElement('div'); sumBox.className = 'sum-box card';
-  const icon = document.createElement('div');
-  icon.style.fontSize = '20px';
-  icon.style.fontWeight = '700';
-  icon.style.width = '36px';
-  icon.style.height = '36px';
-  icon.style.display = 'flex';
-  icon.style.alignItems = 'center';
-  icon.style.justifyContent = 'center';
-  icon.style.borderRadius = '8px';
-  icon.style.flexShrink = '0';
-  const txt = document.createElement('div');
-  const formattedTotal = totalTypeSum.toFixed(2) + ' €';
-  txt.innerHTML = `<div class="small muted">Suma movimientos (${type==='ingreso'?'Ingresos':'Gastos'})</div><div class="font-semibold">${formattedTotal}</div>`;
-  // icon for net
-  if(net >= 0){
-    icon.textContent = '✓';
-    icon.style.background = 'rgba(16,185,129,0.12)';
-    icon.style.color = '#059669';
+// toggle panel para móviles
+toggleSide.addEventListener('click', () => {
+  if (sidePanel.classList.contains('hidden')) {
+    sidePanel.classList.remove('hidden');
   } else {
-    icon.textContent = '✗';
-    icon.style.background = 'rgba(239,68,68,0.08)';
-    icon.style.color = '#dc2626';
+    sidePanel.classList.add('hidden');
   }
-  // also show net value
-  const netEl = document.createElement('div');
-  netEl.innerHTML = `<div class="small muted">Saldo neto categoría</div><div class="font-semibold">${net.toFixed(2)} €</div>`;
-  netEl.style.marginLeft = '16px';
-  sumBox.appendChild(icon);
-  sumBox.appendChild(txt);
-  sumBox.appendChild(netEl);
-  $('#sumCategoria').innerHTML = '';
-  $('#sumCategoria').appendChild(sumBox);
-}
-
-/* Summary table */
-function updateSummaryTable(){
-  const summary = {};
-  categories.concat(['Otros']).forEach((c)=> summary[c] = {ing:0,gas:0});
-  movimientos.forEach(m=>{
-    const c = m.categoria || 'Otros';
-    if(!summary[c]) summary[c] = {ing:0,gas:0};
-    if(m.tipo === 'ingreso') summary[c].ing += Number(m.importe||0);
-    else summary[c].gas += Number(m.importe||0);
-  });
-  const tbody = $('#tablaBalances tbody'); tbody.innerHTML = '';
-  let totalIng=0,totalGas=0;
-  Object.keys(summary).forEach((cat,idx)=>{
-    const ing = summary[cat].ing, gas = summary[cat].gas, bal = ing - gas;
-    totalIng += ing; totalGas += gas;
-    const tr = document.createElement('tr');
-    const bg = softForIndex(idx);
-    tr.style.background = bg;
-    tr.innerHTML = `<td class="small font-semibold">${esc(cat)}</td><td>${ing.toFixed(2)}</td><td>${gas.toFixed(2)}</td><td>${bal.toFixed(2)}</td>`;
-    tbody.appendChild(tr);
-  });
-  $('#sumIngresos').textContent = totalIng.toFixed(2);
-  $('#sumGastos').textContent = totalGas.toFixed(2);
-  $('#sumSaldo').textContent = (totalIng-totalGas).toFixed(2);
-}
-
-/* ---------- Global updates ---------- */
-function updateGlobalSaldo(){
-  const ingresos = movimientos.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+Number(m.importe||0),0);
-  const gastos = movimientos.filter(m=>m.tipo==='gasto').reduce((s,m)=>s+Number(m.importe||0),0);
-  $('#saldoGlobal').textContent = (ingresos-gastos).toFixed(2) + ' €';
-}
-
-/* ---------- Options modal (export/import/reset) ---------- */
-$('#btnOptions').addEventListener('click', ()=> {
-  const root = document.getElementById('modalRoot'); root.innerHTML = '';
-  const overlay = document.createElement('div'); overlay.className='modal-overlay';
-  const modal = document.createElement('div'); modal.className='modal';
-  modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Opciones</div>
-  <div style="display:flex;flex-direction:column;gap:8px">
-    <button id="expBtn" class="btn btn-primary">Exportar datos (descarga JSON)</button>
-    <button id="impOpen" class="btn btn-ghost">Importar datos (pegar JSON)</button>
-    <button id="resetOpen" class="btn btn-ghost">Reiniciar datos</button>
-    <button id="closeBtn" class="btn btn-ghost">Cerrar</button>
-  </div>`;
-  overlay.appendChild(modal); root.appendChild(overlay);
-  $('#closeBtn', modal).onclick = ()=> root.innerHTML = '';
-  $('#expBtn', modal).onclick = ()=> {
-    const data = {recetas, categories, movimientos, reservas};
-    const a = document.createElement('a');
-    a.href = 'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
-    a.download = 'ajop_data.json'; a.click();
-  };
-  $('#impOpen', modal).onclick = ()=> {
-    modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Importar JSON</div>
-      <textarea id="impText" style="width:100%;height:160px;padding:8px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px"><button id="doImp" class="btn btn-primary">Importar</button><button id="impCancel" class="btn btn-ghost">Cancelar</button></div>`;
-    $('#impCancel').onclick = ()=> root.innerHTML = '';
-    $('#doImp').onclick = ()=> {
-      try{ const obj = JSON.parse($('#impText').value); recetas = obj.recetas||[]; categories = obj.categories||categories; movimientos = obj.movimientos||[]; reservas = obj.reservas||[]; saveAll(); renderAll(); root.innerHTML=''; alert('Importado'); }
-      catch(e){ alert('JSON inválido'); }
-    }
-  };
-  $('#resetOpen', modal).onclick = ()=> {
-    modal.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Reiniciar datos</div><div class="small muted">Escribe REINICIAR para confirmar</div><input id="confirmReset" class="field" placeholder="REINICIAR"><div style="display:flex;gap:8px;margin-top:8px"><button id="doReset" class="btn btn-primary">Reiniciar</button><button id="resetCancel" class="btn btn-ghost">Cancelar</button></div>`;
-    $('#resetCancel').onclick = ()=> root.innerHTML='';
-    $('#doReset').onclick = ()=> { if($('#confirmReset').value.trim()!=='REINICIAR'){ alert('Escribe REINICIAR'); return; } recetas=[]; categories=['Cuotas','Eventos','Compras','Otros']; movimientos=[]; reservas=[]; saveAll(); renderAll(); root.innerHTML=''; alert('Reiniciado'); };
-  };
 });
 
-/* ---------- Render all ---------- */
-function renderAll(){
-  renderCategorias(); renderRecetas(); renderMovimientos(); renderReservas(); renderBalances(); updateGlobalSaldo(); renderCalendar(currentYear, currentMonth); renderHistorial();
+// helper: cargar todo al inicio
+function initApp() {
+  loadState();
+  populateCategoryFilter();
+  renderMarkers();
+  renderList();
+
+  // Detecta posición automáticamente si el usuario ya la permitió antes
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'geolocation' }).then(res => {
+      if (res.state === 'granted') {
+        btnLocate.click();
+      }
+    }).catch(()=>{});
+  }
 }
-renderAll();
 
-/* Accessibility focus */
-$all('.nav-btn').forEach(btn=> btn.addEventListener('click', ()=> setTimeout(()=>{ const s=document.getElementById(btn.dataset.target); const f = s && s.querySelector('input,textarea,select'); if(f) f.focus(); }, 300) ));
+// pequeñas mejoras: abrir modal si el usuario hace doble clic en mapa (alternativa)
+map.on('dblclick', () => openModal());
 
-}); // DOMContentLoaded
+// inicio
+initApp();
+
+/* --- fin JS --- */
 </script>
 </body>
 </html>
